@@ -111,6 +111,7 @@ namespace TR { class SymbolReference; }
 namespace TR { class SymbolReferenceTable; }
 namespace TR { class TreeTop; }
 namespace TR { class TypeLayout; }
+namespace TR { class RelocationRuntime; }
 typedef TR::SparseBitVector SharedSparseBitVector;
 
 #if _AIX
@@ -335,6 +336,8 @@ public:
 
    bool trace(OMR::Optimizations o)             { return _options->trace(o); }
    bool isDisabled(OMR::Optimizations o)        { return _options->isDisabled(o); }
+   TR::RelocationRuntime* aotReloRuntime() { return _aotReloRuntime;}
+   void setReloRuntime(TR::RelocationRuntime* relo) {_aotReloRuntime = relo;}
 
 
    // Table of heap objects whose identity is known at compile-time
@@ -1140,6 +1143,7 @@ protected:
    int16_t                            _lastPerformedOptIndex;
    int32_t                            _currentOptSubIndex;
    int32_t                            _lastPerformedOptSubIndex;
+   TR::RelocationRuntime*             _aotReloRuntime;
 
    TR_Debug                      *_debug;
 protected:
