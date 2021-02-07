@@ -63,7 +63,7 @@ struct RelocationRecordMethodCallPrivateData
 
 union RelocationRecordPrivateData
    {
-   int storage;
+   long int storage;
    };
 
 }
@@ -122,7 +122,7 @@ public:
 
    void * operator new (size_t s, RelocationRecord *p)   { return p; }
    TR::RelocationRecord* self();
-   char *name() { return "RelocationRecord"; }
+   virtual char *name() { return "RelocationRecord"; }
 
    bool isValidationRecord() { return false; }
 
@@ -130,21 +130,14 @@ public:
    static TR::RelocationRecord *create(TR::RelocationRecord *storage, TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, TR::RelocationRecordBinaryTemplate *recordPointer);
 
    void clean(TR::RelocationTarget *reloTarget);
-   int32_t bytesInHeader(TR::RelocationTarget *reloTarget);
-   /**
-    * @brief This function is used to cache the values that are retrieved at run-time, during the code loading
-    * Sometimes, computing the values required for updating the code is non-trivial and might add extra cost. 
-    * To avoid repeated computation, this function is used
-    * 
-    * @param reloRuntime - a reference to relocation runtime to query the runtime for the required values
-    * @param reloTarget - a reference to the cross-platform API to store/load values at various machine dependent granularity
-    */
-   void preparePrivateData(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget);
+   virtual int32_t bytesInHeader(TR::RelocationTarget *reloTarget);
+
+   virtual void preparePrivateData(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget);
 
    int32_t applyRelocationAtAllOffsets(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, uint8_t *relocationOrigin);
 
-   int32_t applyRelocation(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, uint8_t *reloLocation) {return -1;}
-   int32_t applyRelocation(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, uint8_t *reloLocationHigh, uint8_t *reloLocationLow) {return -1;}
+   virtual int32_t applyRelocation(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, uint8_t *reloLocation) {return -1;}
+   virtual int32_t applyRelocation(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, uint8_t *reloLocationHigh, uint8_t *reloLocationLow) {return -1;}
 
    TR::RelocationRecordBinaryTemplate *nextBinaryRecord(TR::RelocationTarget *reloTarget);
    TR::RelocationRecordBinaryTemplate *binaryRecord();
