@@ -353,6 +353,7 @@ OMR::RelocationRecord::applyRelocationAtAllOffsets(TR::RelocationRuntime *reloRu
 
 uint32_t OMR::RelocationRecord::_relocationRecordHeaderSizeTable[TR_NumExternalRelocationKinds] =
    {
-   //This will be removed with further work on openJ9.
-   (uint32_t) -1,
-   };
+0,0,0,0,16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,
+   0,0,0,0,0,0,0,0,0,0,0,0,16,
+      };
