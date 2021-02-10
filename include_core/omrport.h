@@ -68,9 +68,9 @@
  * @{
  */
 #define OMRPORT_ACCESS_FROM_OMRPORT(_omrPortLib) OMRPortLibrary *privateOmrPortLibrary = (_omrPortLib)
-/** @} */
-
 #define OMRPORTLIB privateOmrPortLibrary
+#define OMRPORT_ACCESS_FROM_VMC(vmContext) OMRPortLibrary *privateOmrPortLibrary = (vmContext)->_runtime->_portLibrary
+/** @} */
 
 /**
  * @name File Operations
@@ -2723,6 +2723,17 @@ extern J9_CFUNC int32_t omrport_startup_library(struct OMRPortLibrary *portLibra
 
 /** Port library self allocation routines */
 extern J9_CFUNC int32_t omrport_allocate_library(struct OMRPortLibrary **portLibrary);
+/** @} */
+
+/**
+ * @name Control file unlink status
+ * Flags used to indicate unlink status of control files used by semaphore set or shared memory
+ * These flags are used to store value in J9ControlFileStatus.status
+ * @{
+ */
+#define OMRPORT_INFO_CONTROL_FILE_NOT_UNLINKED			0
+#define OMRPORT_INFO_CONTROL_FILE_UNLINK_FAILED			1
+#define OMRPORT_INFO_CONTROL_FILE_UNLINKED				2
 /** @} */
 
 /**

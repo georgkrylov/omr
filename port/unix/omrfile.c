@@ -1155,7 +1155,9 @@ omrfile_fstat(struct OMRPortLibrary *portLibrary, intptr_t fd, struct J9FileStat
 
 	Trc_PRT_file_fstat_Entry(fd);
 
+#ifndef OMR_RELOCATION_RUNTIME
 	portLibrary->error_set_last_error(portLibrary, 0, 0);
+#endif
 
 	memset(buf, 0, sizeof(J9FileStat));
 
