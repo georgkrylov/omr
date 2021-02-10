@@ -36,6 +36,12 @@
 #include "runtime/Runtime.hpp"
 #include "runtime/JBJitConfig.hpp"
 #include "control/CompilationController.hpp"
+#include "runtime/TRRelocationRecord.hpp"
+#include "runtime/TRRelocationRuntime.hpp"
+#include "env/AOTLoadStoreDriver.hpp"
+//#include "elfso/env/AOTAdapter.hpp"
+
+static TR::AOTLoadStoreDriver* AOTLoadStoreDriver;
 
 #if defined(AIXPPC)
 #include "p/codegen/PPCTableOfConstants.hpp"
@@ -110,6 +116,25 @@ initializeCodeCache(TR::CodeCacheManager & codeCacheManager)
    TR::CodeCache *firstCodeCache = codeCacheManager.initialize(true, 1);
    }
 
+void storeCodeEntry(const char *methodName) 
+   {
+     TR::Compiler->aotLoadStoreDriver->storeHeaderForCompiledMethod(methodName);
+   }
+
+bool initializeAOT(TR::CodeCacheManager* codeCacheManager) {  
+   AOTLoadStoreDriver = new (PERSISTENT_NEW) TR::AOTLoadStoreDriver();
+   AOTLoadStoreDriver->initializeAOTClasses(codeCacheManager);
+   return true;
+}
+
+void *getCodeEntry(const char *methodName){
+  return  AOTLoadStoreDriver->getMethodCode(methodName);
+}
+
+void relocateCodeEntry(const char *methodName) {
+   AOTLoadStoreDriver->relocateRegisteredMethod(methodName);
+}
+
 // helperIDs is an array of helper id corresponding to the addresses passed in "helpers"
 // helpers is an array of pointers to helpers that compiled code needs to reference
 //   currently this argument isn't needed by anything so this function can stay internal
@@ -146,6 +171,10 @@ initializeJitBuilder(TR_RuntimeHelper *helperIDs, void **helperAddresses, int32_
 
    initializeCodeCache(fe.codeCacheManager());
 
+#ifdef OMR_RELOCATION_RUNTIME
+   initializeAOT(&(fe.codeCacheManager()));
+   TR::Compiler->aotLoadStoreDriver = AOTLoadStoreDriver;
+#endif
    return true;
    }
 
@@ -220,4 +249,27 @@ internal_shutdownJit()
    codeCacheManager.destroy();
 
    TR::CompilationController::shutdown();
+   }
+
+void
+internal_storeCodeEntry(char* methodName)
+   {
+   storeCodeEntry((const char*)methodName);
+   }
+
+void *
+internal_getCodeEntry(char *methodName)
+   {
+   return getCodeEntry((const char*)methodName);
+   }
+
+void internal_relocateCodeEntry(char *methodName)
+   {
+   relocateCodeEntry(const_cast<const char*>(methodName));
+   }
+
+void internal_setCodeEntry(char *methodName, void *codeLocation)
+   {
+     const char *methodN = const_cast<const char *>(methodName);
+     AOTLoadStoreDriver->registerExternalItem(methodN,codeLocation);
    }

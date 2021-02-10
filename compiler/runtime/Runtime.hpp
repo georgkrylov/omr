@@ -349,7 +349,8 @@ typedef enum
    TR_CatchBlockCounter                   = 113,
    TR_StartPC                             = 114,
    TR_MethodEnterExitHookAddress          = 115,
-   TR_NumExternalRelocationKinds          = 116,
+   TR_BranchTable                         = 116,
+   TR_NumExternalRelocationKinds          = 117,
    TR_ExternalRelocationTargetKindMask    = 0xff,
    } TR_ExternalRelocationTargetKind;
 

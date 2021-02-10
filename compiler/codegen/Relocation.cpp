@@ -485,6 +485,7 @@ const char *TR::ExternalRelocation::_externalRelocationTargetKindNames[TR_NumExt
    "TR_CatchBlockCounter (113)",
    "TR_StartPC (114)",
    "TR_MethodEnterExitHookAddress (115)",
+   "TR_BranchTable (116)",
    };
 
 uintptr_t TR::ExternalRelocation::_globalValueList[TR_NumGlobalValueItems] =
