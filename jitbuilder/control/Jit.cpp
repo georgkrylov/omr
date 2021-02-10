@@ -35,6 +35,11 @@
 #include "runtime/CodeCache.hpp"
 #include "runtime/Runtime.hpp"
 #include "runtime/JBJitConfig.hpp"
+#include "runtime/TRRelocationRecord.hpp"
+#include "runtime/TRRelocationRuntime.hpp"
+#include "env/AOTAdapter.hpp"
+
+static TR::AOTAdapter* AOTAdapter;
 
 #if defined(AIXPPC)
 #include "p/codegen/PPCTableOfConstants.hpp"
@@ -109,6 +114,25 @@ initializeCodeCache(TR::CodeCacheManager & codeCacheManager)
    TR::CodeCache *firstCodeCache = codeCacheManager.initialize(true, 1);
    }
 
+void storeCodeEntry(const char *methodName) 
+   {
+     TR::Compiler->aotAdapter->storeHeaderForCompiledMethod(methodName);
+   }
+
+bool initializeAOT(TR::CodeCacheManager* codeCacheManager) {  
+   AOTAdapter = new (PERSISTENT_NEW) TR::AOTAdapter();
+   AOTAdapter->initializeAOTClasses(codeCacheManager);
+   return true;
+}
+
+void *getCodeEntry(const char *methodName){
+  return  AOTAdapter->getMethodCode(methodName);
+}
+
+void relocateCodeEntry(const char *methodName) {
+   AOTAdapter->relocateRegisteredMethod(methodName);
+}
+
 // helperIDs is an array of helper id corresponding to the addresses passed in "helpers"
 // helpers is an array of pointers to helpers that compiled code needs to reference
 //   currently this argument isn't needed by anything so this function can stay internal
@@ -145,6 +169,10 @@ initializeJitBuilder(TR_RuntimeHelper *helperIDs, void **helperAddresses, int32_
 
    initializeCodeCache(fe.codeCacheManager());
 
+#ifdef OMR_RELOCATION_RUNTIME
+   initializeAOT(&(fe.codeCacheManager()));
+   TR::Compiler->aotAdapter = AOTAdapter;
+#endif
    return true;
    }
 
@@ -219,4 +247,27 @@ internal_shutdownJit()
    codeCacheManager.destroy();
 
    TR::CompilationController::shutdown();
+   }
+
+void 
+internal_storeCodeEntry(char* methodName)
+   {
+   storeCodeEntry((const char*)methodName);
+   }
+
+void *
+internal_getCodeEntry(char *methodName)
+   {
+   return getCodeEntry((const char*)methodName);
+   }
+
+void internal_relocateCodeEntry(char *methodName)
+   {
+   relocateCodeEntry(const_cast<const char*>(methodName));
+   }
+
+void internal_setCodeEntry(char *methodName, void *codeLocation)
+   {
+     const char *methodN = const_cast<const char *>(methodName);
+     AOTAdapter->storeExternalItem(methodN,codeLocation);
    }
