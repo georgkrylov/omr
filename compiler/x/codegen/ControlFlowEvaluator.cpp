@@ -2367,7 +2367,11 @@ OMR::X86::CodeGenerator::addMetaDataForBranchTableAddress(
       TR::Node *caseNode,
       TR::X86MemTableInstruction *jmpTableInstruction)
    {
-
+#ifdef OMR_RELOCATION_RUNTIME
+   self()->addExternalRelocation(new (self()->trHeapMemory()) TR::ExternalRelocation(target, target, TR_BranchTable, self()), __FILE__,
+      __LINE__,
+      caseNode->getBranchDestination()->getNode());
+#else
    self()->addExternalRelocation(
       TR::ExternalRelocation::create(
          target,
@@ -2377,6 +2381,8 @@ OMR::X86::CodeGenerator::addMetaDataForBranchTableAddress(
       __FILE__,
       __LINE__,
       caseNode->getBranchDestination()->getNode());
+#endif
+
 
    TR::LabelSymbol *label = caseNode->getBranchDestination()->getNode()->getLabel();
    TR::LabelRelocation *relocation = new (self()->trHeapMemory()) TR::LabelAbsoluteRelocation(target, label);
