@@ -35,6 +35,39 @@
         , "flags": []
         , "return": "none"
         , "parms": []
+        },
+	{ "name": "storeCodeEntry"
+        , "overloadsuffix": ""
+        , "flags": []
+        , "return": "none"
+        , "parms": [
+            {"name":"methodName","type":"string"}
+            ]
+        },
+        { "name": "getCodeEntry"
+        , "overloadsuffix": ""
+        , "flags": []
+        , "return": "pointer"
+        , "parms": [
+            {"name":"methodName","type":"string"}
+            ]
+        },
+        { "name": "setCodeEntry"
+        , "overloadsuffix": ""
+        , "flags": []
+        , "return": "none"
+        , "parms": [
+            {"name":"methodName","type":"string"},
+            {"name":"codeLocation","type":"pointer"}
+            ]
+        },
+        { "name": "relocateCodeEntry"
+        , "overloadsuffix": ""
+        , "flags": []
+        , "return": "none"
+        , "parms": [
+            {"name":"methodName","type":"string"}
+            ]
         }
         ],
     "classes": [
