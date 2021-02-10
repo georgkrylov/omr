@@ -2878,8 +2878,15 @@ TR::AMD64RegImm64SymInstruction::addMetaDataForCodeAddress(uint8_t *cursor)
             {
             if (cg()->needRelocationsForStatics())
                {
+#ifdef OMR_RELOCATION_RUNTIME
+               TR::StaticSymbol * symbol = dynamic_cast<TR::StaticSymbol*>(getSymbolReference()->getSymbol());
+#endif
                cg()->addExternalRelocation(new (cg()->trHeapMemory()) TR::ExternalRelocation(cursor,
+#ifdef OMR_RELOCATION_RUNTIME
+                                                                                         (uint8_t *) symbol->getName(),
+#else
                                                                                          (uint8_t *) getSymbolReference(),
+#endif
                                                                                          (uint8_t *)getNode() ? (uint8_t *)(intptr_t) getNode()->getInlinedSiteIndex() : (uint8_t *)-1,
                                                                                          (TR_ExternalRelocationTargetKind) getReloKind(),
                                                                                          cg()),
@@ -2894,6 +2901,9 @@ TR::AMD64RegImm64SymInstruction::addMetaDataForCodeAddress(uint8_t *cursor)
             if (cg()->comp()->getOption(TR_EmitRelocatableELFFile))
                {
                TR_ResolvedMethod *target = getSymbolReference()->getSymbol()->castToResolvedMethodSymbol()->getResolvedMethod();
+#ifdef OMR_RELOCATION_RUNTIME
+               cg()->addExternalRelocation(new (cg()->trHeapMemory()) TR::ExternalRelocation(cursor,reinterpret_cast<uint8_t*>(const_cast<char *>(target->externalName(cg()->trMemory()))), TR_MethodCallAddress, cg()), __FILE__, __LINE__, getNode());
+#endif
                cg()->addStaticRelocation(TR::StaticRelocation(cursor, target->externalName(cg()->trMemory()), TR::StaticRelocationSize::word64, TR::StaticRelocationType::Absolute));
                }
             break;
