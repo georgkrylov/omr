@@ -1828,6 +1828,7 @@ OMR::CodeGenerator::allocateCodeMemoryInner(
       self()->comp()->setRelocatableMethodCodeStart(warmCode);
       self()->switchCodeCacheTo(codeCache);
       }
+   self()->comp()->setRelocatableMethodCodeStart(warmCode+4);
 
    if (warmCode == NULL)
       {
