@@ -122,7 +122,7 @@ OMR::RelocationRecordGroup::applyRelocations(TR::RelocationRuntime *reloRuntime,
       if (rc != 0)
          return rc;
 
-      recordPointer =  reinterpret_cast<TR::RelocationRecordBinaryTemplate *>(reloRecord->nextBinaryRecord(reloTarget));
+      recordPointer = reloRecord->nextBinaryRecord(reloTarget);
       }
 
    return 0;
