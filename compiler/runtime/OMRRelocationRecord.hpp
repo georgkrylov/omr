@@ -139,8 +139,8 @@ public:
    int32_t applyRelocation(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, uint8_t *reloLocation) {return -1;}
    int32_t applyRelocation(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, uint8_t *reloLocationHigh, uint8_t *reloLocationLow) {return -1;}
 
-   RelocationRecordBinaryTemplate *nextBinaryRecord(TR::RelocationTarget *reloTarget);
-   RelocationRecordBinaryTemplate *binaryRecord();
+   TR::RelocationRecordBinaryTemplate *nextBinaryRecord(TR::RelocationTarget *reloTarget);
+   TR::RelocationRecordBinaryTemplate *binaryRecord();
 
    void setSize(TR::RelocationTarget *reloTarget, uint16_t size);
    uint16_t size(TR::RelocationTarget *reloTarget);

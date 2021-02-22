@@ -192,10 +192,10 @@ OMR::RelocationRecordBinaryTemplate::self()
    return static_cast<TR::RelocationRecordBinaryTemplate *>(this);
    }
 
-OMR::RelocationRecordBinaryTemplate *
+TR::RelocationRecordBinaryTemplate *
 OMR::RelocationRecord::nextBinaryRecord(TR::RelocationTarget *reloTarget)
    {
-   return (OMR::RelocationRecordBinaryTemplate*) (((uint8_t*)self()->_record) + self()->size(reloTarget));
+   return (TR::RelocationRecordBinaryTemplate*) (((uint8_t*)self()->_record) + self()->size(reloTarget));
    }
 
 void
