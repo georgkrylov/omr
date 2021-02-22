@@ -73,14 +73,6 @@ OMR::RelocationRecordBinaryTemplate::setFlags(TR::RelocationTarget *reloTarget,u
    }
 
 
-#if defined(TR_HOST_64BIT)
-void
-OMR::RelocationRecordBinaryTemplate::setExtra(TR::RelocationTarget *reloTarget,uint32_t extra)
-   {
-   return reloTarget->storeUnsigned32b(extra, reinterpret_cast<uint8_t*>(&_extra));
-   }
-#endif
-
 TR::RelocationRecord *
 OMR::RelocationRecord::self()
    {

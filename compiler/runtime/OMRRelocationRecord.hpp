@@ -97,14 +97,10 @@ public:
    void setType(TR::RelocationTarget*, uint8_t kind);
    void setSize(TR::RelocationTarget*, uint16_t size);
    void setFlags(TR::RelocationTarget*, uint8_t flags);
-   void setExtra(TR::RelocationTarget*, uint32_t extra);
    uint8_t type(TR::RelocationTarget *reloTarget);
    uint16_t _size;
    uint8_t _type;
    uint8_t _flags;
-   #if defined(TR_HOST_64BIT)
-      uint32_t _extra; //holds prePrologue offset
-   #endif
    };
 
 enum RelocationRecordAction
