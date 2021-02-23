@@ -161,7 +161,6 @@ public:
    uint8_t reloFlags(TR::RelocationTarget *reloTarget);
 
    TR::RelocationRuntime *_reloRuntime;
-   void initialize(TR::RelocationTarget *reloTarget,uint8_t* dataOne,uint8_t* dataTwo);
    bool ignore(TR::RelocationRuntime *reloRuntime);
    RelocationRecordAction action(RelocationRuntime *reloRuntime);
    static uint32_t getSizeOfAOTRelocationHeader(TR_ExternalRelocationTargetKind k)

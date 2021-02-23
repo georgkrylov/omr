@@ -128,11 +128,6 @@ OMR::RelocationRecordGroup::applyRelocations(TR::RelocationRuntime *reloRuntime,
    return 0;
    }
 
-void OMR::RelocationRecord::initialize(TR::RelocationTarget *reloTarget,uint8_t* targetAddress, uint8_t* targetAddress2 )
-   {
-   TR_UNIMPLEMENTED();
-   }
-
 int32_t
 OMR::RelocationRecordGroup::handleRelocation(TR::RelocationRuntime *reloRuntime,
                                            TR::RelocationTarget *reloTarget,
