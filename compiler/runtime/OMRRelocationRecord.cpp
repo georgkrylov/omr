@@ -171,8 +171,8 @@ void
 OMR::RelocationRecord::clean(TR::RelocationTarget *reloTarget)
    {
    self()->setSize(reloTarget, 0);
-   reloTarget->storeUnsigned8b(0, (uint8_t *) &_record->_type);
-   reloTarget->storeUnsigned8b(0, (uint8_t *) &_record->_flags);
+   self()->setType(reloTarget,(OMR::RelocationRecordType)_record->_type);
+   self()->setReloFlags(reloTarget, _record->_flags);
    }
 
 int32_t
