@@ -274,7 +274,7 @@ OMR::RelocationRecord::reloFlags(TR::RelocationTarget *reloTarget)
 void
 OMR::RelocationRecord::preparePrivateData(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget)
    {
-
+      TR_UNIMPLEMENTED();
    }
 
 #undef FLAGS_RELOCATION_WIDE_OFFSETS

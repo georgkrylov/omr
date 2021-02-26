@@ -131,7 +131,14 @@ public:
 
    void clean(TR::RelocationTarget *reloTarget);
    int32_t bytesInHeader(TR::RelocationTarget *reloTarget);
-
+   /**
+    * @brief This function is used to cache the values that are retrieved at run-time, during the code loading
+    * Sometimes, computing the values required for updating the code is non-trivial and might add extra cost. 
+    * To avoid repeated computation, this function is used
+    * 
+    * @param reloRuntime - a reference to relocation runtime to query the runtime for the required values
+    * @param reloTarget - a reference to the cross-platform API to store/load values at various machine dependent granularity
+    */
    void preparePrivateData(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget);
 
    int32_t applyRelocationAtAllOffsets(TR::RelocationRuntime *reloRuntime, TR::RelocationTarget *reloTarget, uint8_t *relocationOrigin);
