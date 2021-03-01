@@ -54,9 +54,7 @@ void OMR::AOTAdapter::storeExternalItem(const char *itemName, void* itemAddress)
 void OMR::AOTAdapter::storeAOTMethodAndDataInTheCache(const char* methodName)
     {
     TR::AOTMethodHeader* hdr = _methodNameToHeaderMap[methodName];
-    uint8_t* buffer = _storage->allocateMemoryInCache(hdr->sizeOfSerializedVersion());
-    hdr->serialize(buffer);
-    _storage->storeEntry(methodName,buffer,hdr->sizeOfSerializedVersion());
+    _storage->storeEntry(methodName,hdr);
     }
 
 TR::AOTMethodHeader* OMR::AOTAdapter::loadAOTMethodAndDataFromTheCache(const char* methodName)

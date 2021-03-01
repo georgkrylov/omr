@@ -33,9 +33,12 @@ uint8_t* OMR::AOTStorageInterface::loadEntry(const char* key )
    return 0;
    }
 
-void OMR::AOTStorageInterface::storeEntry(const char* key, void* data, uint8_t size)
+
+void OMR::AOTStorageInterface::storeEntry(const char* key,TR::AOTMethodHeader* hdr)
    {
-   TR_UNIMPLEMENTED();
+   uint8_t* buffer = self()->allocateMemoryInCache(hdr->sizeOfSerializedVersion());
+   hdr->serialize(buffer);
+   self()->storeEntryProjectSpecific(buffer);
    }
 
 uint8_t* OMR::AOTStorageInterface::allocateMemoryInCache(uintptr_t size)

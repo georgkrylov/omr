@@ -46,13 +46,6 @@ namespace OMR {
  */
 class OMR_EXTENSIBLE AOTStorageInterface
    {
-protected:
-   /**
-    * @brief required by the extensible class
-    * 
-    * @return TR::AOTStorageInterface* 
-    */
-   TR::AOTStorageInterface* self();
 public:
    AOTStorageInterface(){};
 
@@ -74,7 +67,7 @@ public:
     * @param data pointer to data
     * @param size size of the data vector
     */
-   void storeEntry(const char* key, void* data, uint8_t size);
+   void storeEntry(const char* methodName, TR::AOTMethodHeader* header);
 
    /**
     * @brief Should return a pointer to the memory allocated for persisting data
@@ -83,7 +76,22 @@ public:
     * @return uintptr_t*  pointer to memory region
     */
    uint8_t * allocateMemoryInCache(uintptr_t size);
-
+protected:
+   /**
+    * @brief required by the extensible class
+    * 
+    * @return TR::AOTStorageInterface* 
+    */
+   TR::AOTStorageInterface* self();
+   /**
+    * @brief abstract method to store data for the 
+    * selected method header
+    * 
+    * @param key an identifier
+    * @param data pointer to data
+    * @param size size of the data vector
+    */
+   void storeEntryProjectSpecific(const char* methodName, void* data, uint32_t size);
    };
 
 } // namespace OMR
