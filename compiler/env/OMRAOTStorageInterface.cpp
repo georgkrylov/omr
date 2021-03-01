@@ -38,10 +38,15 @@ void OMR::AOTStorageInterface::storeEntry(const char* key,TR::AOTMethodHeader* h
    {
    uint8_t* buffer = self()->allocateMemoryInCache(hdr->sizeOfSerializedVersion());
    hdr->serialize(buffer);
-   self()->storeEntryProjectSpecific(buffer);
+   self()->storeEntryProjectSpecific(key,buffer, hdr->sizeOfSerializedVersion());
    }
 
 uint8_t* OMR::AOTStorageInterface::allocateMemoryInCache(uintptr_t size)
+   {
+   TR_UNIMPLEMENTED();
+   }
+
+void OMR::AOTStorageInterface::storeEntryProjectSpecific(const char *methodName, void *data, uint32_t size)
    {
    TR_UNIMPLEMENTED();
    }
