@@ -46,46 +46,18 @@ target_compile_definitions(aotelf
 
 target_include_directories(aotelf
 	PUBLIC
-	#PRIVATE
-		#${j9vm_SOURCE_DIR}/shared
-		#${j9vm_SOURCE_DIR}/shared_util
-		#${j9vm_SOURCE_DIR}/verbose
-		#${PROJECT_SOURCE_DIR}/runtime/shared_common/modifications
-
 		${PROJECT_SOURCE_DIR}/compiler/elfso
-		${PROJECT_SOURCE_DIR}/runtime/shared_common/modifications/wasm
-		#${PROJECT_SOURCE_DIR}/compiler/il
 		${PROJECT_SOURCE_DIR}/compiler/aarch64
 		${omr_SOURCE_DIR}/compiler
-
-		#${PROJECT_SOURCE_DIR}/compiler/aarch64/env
-		#${PROJECT_SOURCE_DIR}/compiler/runtime
-		#${PROJECT_SOURCE_DIR}/compiler/env
-		#${PROJECT_SOURCE_DIR}/compiler/runtime
-		#${PROJECT_SOURCE_DIR}/compiler/il
-		#${PROJECT_SOURCE_DIR}/compiler
-		#${PROJECT_SOURCE_DIR}/nls
-		#${PROJECT_SOURCE_DIR}/include_core
-		#${PROJECT_SOURCE_DIR}/runtime/port/sysvipc
-		#${PROJECT_SOURCE_DIR}/port/sysvipc			
-	#PUBLIC
-		#include/
-		#${omr_SOURCE_DIR}/compiler/codegen
-		#${omr_SOURCE_DIR}/compiler
 		${OMR_PORT_LIB}
 		${omr_SOURCE_DIR}
-		#${CMAKE_CURRENT_BINARY_DIR}
 		include
 		.	
 )
 
-
 target_link_libraries(aotelf
-	#omr_compiler
-	#shared_cache_modifications
 	j9pool
 	j9hashtable
-	#wasm_shared_cache
 	${OMR_PORT_LIB}
 )
 
