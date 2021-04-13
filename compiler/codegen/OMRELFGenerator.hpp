@@ -133,6 +133,10 @@ public:
     typedef Elf64_Rela ELFRela;
     typedef Elf64_Off  ELFOffset;
     typedef Elf64_Dyn  ELFDynamic;
+    typedef Elf64_Section  ELFSection;
+    typedef Elf64_Xword ELFXword;
+    typedef Elf64_Xword ELFSHWord;
+    typedef uint64_t unsignedInt;
 #define ELF_ST_INFO(bind, type) ELF64_ST_INFO(bind, type)
 #define ELF_ST_VISIBILITY(visibility) ELF64_ST_VISIBILITY(visibility)
 #define ELF_R_INFO(bind, type) ELF64_R_INFO(bind, type)
@@ -146,7 +150,11 @@ public:
     typedef Elf32_Sym  ELFSymbol;
     typedef Elf32_Rela ELFRela;
     typedef Elf32_Off  ELFOffset;
-    typedef Elf64_Dyn  ELFDynamic;
+    typedef Elf32_Dyn  ELFDynamic;
+    typedef Elf32_Section ELFSection;
+    typedef Elf32_Xword ELFXword;
+    typedef Elf32_Word ELFSHWord;
+    typedef uint32_t unsignedInt;
 #define ELF_ST_INFO(bind, type) ELF32_ST_INFO(bind, type)
 #define ELF_ST_VISIBILITY(visibility) ELF32_ST_VISIBILITY(visibility)
 #define ELF_R_INFO(bind, type) ELF32_R_INFO(bind, type)

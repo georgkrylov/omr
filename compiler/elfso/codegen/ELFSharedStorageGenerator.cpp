@@ -67,6 +67,7 @@ ELF::ELFSharedObjectGenerator::initialize(void)
 
 }
 
+
 void 
 ELF::ELFSharedObjectGenerator::initializeAotCDSection(uint32_t shName, ELFAddress shAddress,
                                                  ELFOffset shOffset, uint32_t shSize)
@@ -561,7 +562,7 @@ ELF::ELFSharedObjectGenerator::emitAOTELFFile(const char * filename)
 
     writeSectionNameToFile(elfFile, _dynamicSectionName, sizeof(_dynamicSectionName));
     
-    writeAOTELFSymbolsToFile(elfFile);
+    processAllSymbols(elfFile);
 
     writeHashSectionToFile(elfFile);
 
@@ -591,20 +592,15 @@ ELF::ELFSharedObjectGenerator::writeProgramHeaderToFile(::FILE *fp)
 }
 
 void 
-ELF::ELFSharedObjectGenerator::writeAOTELFSymbolsToFile(::FILE *fp)
+ELF::ELFSharedObjectGenerator::processAllSymbols(::FILE *fp)
 {
     //printf("\n In writeAOTELFSymbolsToFile\n");
     ELFSymbol * elfSym = static_cast<ELFSymbol*>(_rawAllocator.allocate(sizeof(ELFSymbol)));
     char ELFSymbolNames[_totalELFSymbolNamesLength];
     //uint8_t hash_index = 0;
     /* Writing the UNDEF symbol*/
-    elfSym->st_name = 0;
-    elfSym->st_info = 0;
-    elfSym->st_other = 0;
-    elfSym->st_shndx = 0;
-    elfSym->st_value = 0;
-    elfSym->st_size = 0;
-    fwrite(elfSym, sizeof(uint8_t), sizeof(ELFSymbol), fp);
+    writeSymbolToFile(fp, elfSym, 0, 0, 0, 0, 0, 0);
+
     //hash_index++;
 
     ELFSymbolNames[0] = 0; //first bit needs to be 0, corresponding to the name of the UNDEF symbol
@@ -612,25 +608,16 @@ ELF::ELFSharedObjectGenerator::writeAOTELFSymbolsToFile(::FILE *fp)
     TR::CodeCacheSymbol *sym = _symbols; 
 
     const uint8_t* rangeStart; //relocatable elf files need symbol offset from segment base
-   // if (_relaSection)
-   // {
-    //    rangeStart = _codeStart;    
-   // } 
-  //  else 
-  //  {
-        rangeStart = 0;
-  //  }
+    rangeStart = 0;
+
     
     //values that are unchanged are being kept out of the while loop
-    elfSym->st_other = ELF_ST_VISIBILITY(STV_DEFAULT);
-    elfSym->st_info = ELF_ST_INFO(STB_GLOBAL,STT_FUNC);
-    /* this while loop re-uses the ELFSymbol and writes
-     
+    //elfSym->st_other = ELF_ST_VISIBILITY(STV_DEFAULT);
+    //elfSym->st_info = ELF_ST_INFO(STB_GLOBAL,STT_FUNC);
+    /* this while loop re-uses the ELFSymbol and write
        CodeCacheSymbol info into file */
     uint32_t symbolDefStart = AotCDSectionStartOffset;
     TR::AOTMethodHeader* hdr;
-
-    //printf(" \n _relocatableSymbolContainer->_numSymbols = %u \n", _relocatableSymbolContainer->_numSymbols); 
 
      // for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
       for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
@@ -640,13 +627,23 @@ ELF::ELFSharedObjectGenerator::writeAOTELFSymbolsToFile(::FILE *fp)
 
         //printf("\n hdr->self()->newCompiledCodeStart = [ %p ]", hdr->self()->newCompiledCodeStart);
         memcpy(names, methodName, strlen(methodName) + 1);
-        elfSym->st_name = names - ELFSymbolNames;
-        elfSym->st_shndx = hdr->self()->compiledCodeStart ? 1 : SHN_UNDEF;
+        unsignedInt st_name = names - ELFSymbolNames;
+       // elfSym->st_name = names - ELFSymbolNames;
+        //elfSym->st_shndx = hdr->self()->compiledCodeStart ? 1 : SHN_UNDEF;
         //elfSym->st_value = hdr->self()->newCompiledCodeStart ? (ELFAddress)(hdr->self()->newCompiledCodeStart - rangeStart) : 0;
-        elfSym->st_value = (ELFAddress) symbolDefStart;
+        //elfSym->st_value = (ELFAddress) symbolDefStart;
         uint32_t AotCDBufferSize = hdr->self()->sizeOfSerializedVersion();
-        elfSym->st_size = AotCDBufferSize;
-        fwrite(elfSym, sizeof(uint8_t), sizeof(ELFSymbol), fp);
+       // elfSym->st_size = AotCDBufferSize;
+        //fwrite(elfSym, sizeof(uint8_t), sizeof(ELFSymbol), fp);
+        writeSymbolToFile(fp, 
+                          elfSym,
+                          st_name, 
+                          ELF_ST_INFO(STB_GLOBAL,STT_FUNC), 
+                          ELF_ST_VISIBILITY(STV_DEFAULT),  
+                          hdr->self()->compiledCodeStart ? 1 : SHN_UNDEF, 
+                          (ELFAddress) symbolDefStart, 
+                          AotCDBufferSize);
+
 
         symbolDefStart += AotCDBufferSize;
         names += (strlen(methodName) + 1);
@@ -656,20 +653,36 @@ ELF::ELFSharedObjectGenerator::writeAOTELFSymbolsToFile(::FILE *fp)
     char const * dynamicSymbolName = "_DYNAMIC";
     memcpy(names, dynamicSymbolName, strlen(dynamicSymbolName) + 1);
     
-    elfSym->st_name = names - ELFSymbolNames;
-    elfSym->st_info = ELF_ST_INFO(STB_LOCAL,STT_OBJECT);
-    elfSym->st_other = ELF_ST_VISIBILITY(STV_DEFAULT);
-    elfSym->st_shndx = 1;
-    elfSym->st_value = dynamicSectionStartOffset;
-    elfSym->st_size = 0;
+    writeSymbolToFile(fp,
+                      elfSym, 
+                      names - ELFSymbolNames, 
+                      ELF_ST_INFO(STB_LOCAL,STT_OBJECT), 
+                      ELF_ST_VISIBILITY(STV_DEFAULT), 
+                      1, 
+                      dynamicSectionStartOffset, 
+                      0);
+
 
     names += (strlen(dynamicSymbolName) + 1);
-    fwrite(elfSym, sizeof(uint8_t), sizeof(ELFSymbol), fp);
 
     fwrite(ELFSymbolNames, sizeof(uint8_t), _totalELFSymbolNamesLength, fp);
 
     _rawAllocator.deallocate(elfSym);
     //printf("\n Out writeAOTELFSymbolsToFile\n");
+}
+
+//ELFSymbol *elfSym can be alllocate and deallocate din the constructors/destructor
+void 
+ELF::ELFSharedObjectGenerator::writeSymbolToFile(::FILE *fp, ELFSymbol *elfSym, uint32_t st_name, unsigned char st_info, unsigned char st_other, ELFSection st_shndx, ELFAddress st_value, uint64_t st_size)
+{
+    ELFSymbol * elfSyms = static_cast<ELFSymbol*>(_rawAllocator.allocate(sizeof(ELFSymbol)));
+    elfSyms->st_name = st_name;
+    elfSyms->st_info = st_info;
+    elfSyms->st_other = st_other;
+    elfSyms->st_shndx = st_shndx;
+    elfSyms->st_value = st_value;
+    elfSyms->st_size = st_size;
+    fwrite(elfSyms, sizeof(uint8_t), sizeof(ELFSymbol), fp);
 }
 
 void

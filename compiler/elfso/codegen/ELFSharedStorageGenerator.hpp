@@ -251,7 +251,9 @@ public:
                // TR::CodeCacheRelocationInfo *relocations,
                 //uint32_t numRelocations);
 
-    void writeAOTELFSymbolsToFile(::FILE *fp);
+    void processAllSymbols(::FILE *fp);
+
+    void  writeSymbolToFile(::FILE *fp, ELFSymbol *elfSym, uint32_t st_name, unsigned char st_info, unsigned char st_other, ELFSection st_shndx, ELFAddress st_value, uint64_t st_size);
 
     bool emitAOTELFFile(const char * filename);
 
