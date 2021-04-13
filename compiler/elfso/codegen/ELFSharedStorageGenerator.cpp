@@ -115,7 +115,6 @@ ELF::ELFSharedObjectGenerator::initializeDataSection(uint32_t shName, ELFAddress
 void
 ELF::ELFSharedObjectGenerator::initializeDynSymSection(uint32_t shName, ELFAddress shAddress, ELFOffset shOffset, uint32_t shSize, uint32_t shLink)
 {
-    
     ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
 
     shdr->sh_name = shName;
@@ -204,7 +203,7 @@ ELF::ELFSharedObjectGenerator::initializeDynamicSection(uint32_t shName, ELFAddr
     shdr->sh_addr = shAddress + (ELFAddress) 0x200000;
     shdr->sh_offset = shOffset;
     shdr->sh_size = shSize;
-    shdr->sh_link = 3;
+    shdr->sh_link = 2;
     shdr->sh_info = 0;
     shdr->sh_addralign = TR::Compiler->target.is64Bit() ? 8 : 4;    
     shdr->sh_entsize = sizeof(ELFDynamic);
@@ -224,7 +223,7 @@ ELF::ELFSharedObjectGenerator::initializeHashSection(uint32_t shName, ELFAddress
     shdr->sh_addr = shAddress;
     shdr->sh_offset = shOffset;
     shdr->sh_size = shSize;
-    shdr->sh_link = 2;
+    shdr->sh_link = 3;
     shdr->sh_info = 0;
     shdr->sh_addralign = TR::Compiler->target.is64Bit() ? 8 : 4;  
     shdr->sh_entsize = 0;
@@ -300,7 +299,7 @@ ELF::ELFSharedObjectGenerator::initializeELFHeader(void)
     _header->e_phentsize = sizeof(ELFProgramHeader); //no program headers in shared object elf
     _header->e_phnum = 3;
     _header->e_shnum = 8; 
-    _header->e_shstrndx = 3; //index of section header string table
+    _header->e_shstrndx = 2; //index of section header string table
     //printf("\n Out initializeELFHeader\n");
 }
 
@@ -309,6 +308,7 @@ ELF::ELFSharedObjectGenerator::initializeSectionNames(void)
 { 
     //printf("\n In initializeSectionNames\n");
     _zeroSectionName[0] = 0;
+    shStrTabNameLength = 0;
     strcpy(_shStrTabSectionName, ".shstrtab");
     strcpy(_AotCDSectionName, ".aotcd");
     strcpy(_dynSymSectionName, ".dynsym");
@@ -338,9 +338,10 @@ ELF::ELFSharedObjectGenerator::initializeSectionOffsets(void)
     
     AotCDSectionStartOffset = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3);
     //printf("\n textSectionStartOffset %d \n ",textSectionStartOffset);
-    
-    dynsymSectionStartOffset  = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3) + _codeSize +   
-                                  (sizeof(ELFSectionHeader) * /* # shdr */ 8) +
+    shstrtabSectionStartOffset = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3) + _codeSize +   
+                                  (sizeof(ELFSectionHeader) * /* # shdr */ 8);
+                                  
+    dynsymSectionStartOffset  =  shstrtabSectionStartOffset +
                                   shStrTabNameLength;
     //printf("\n dynsymSectionStartOffset %d \n ",dynsymSectionStartOffset);
     
@@ -363,34 +364,34 @@ void
 ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
 {    
     //printf("\n In ELFSharedObjectGenerator buildSectionHeaders\n");
-    shStrTabNameLength = 0;
-    dynamicSectionStartOffset = 0;
-    shStrTabNameLength = sizeof(_zeroSectionName) +
-                                  sizeof(_shStrTabSectionName) +
-                                  sizeof(_AotCDSectionName) +
+    //shStrTabNameLength = 0;
+    //dynamicSectionStartOffset = 0;
+    //shStrTabNameLength = sizeof(_zeroSectionName) +
+    //                              sizeof(_shStrTabSectionName) +
+     //                             sizeof(_AotCDSectionName) +
                                   //sizeof(_relaSectionName) +
-                                  sizeof(_dynSymSectionName) +
-                                  sizeof(_dynStrSectionName) +
-                                  sizeof(_hashSectionName) +
-                                  sizeof(_dataSectionName) +
-                                  sizeof(_dynamicSectionName);
+     //                             sizeof(_dynSymSectionName) +
+     //                             sizeof(_dynStrSectionName) +
+     //                             sizeof(_hashSectionName) +
+     //                             sizeof(_dataSectionName) +
+      //                            sizeof(_dynamicSectionName);
                                   
 
     //printf("\n shStrTabNameLength %d \n ",shStrTabNameLength); 
     //printf("\n _codeSize %d \n ",_codeSize); 
 
     /* offset calculations */
-    uint32_t trailerStartOffset = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3) +_codeSize;
-    uint32_t symbolsStartOffset = trailerStartOffset +
-                                  (sizeof(ELFSectionHeader) * /* # shdr */ 8) +
-                                  shStrTabNameLength;
-    uint32_t symbolNamesStartOffset = symbolsStartOffset + 
-                                      (_numSymbols + /* UNDEF */ 2) * sizeof(ELFSymbol);
+    //uint32_t trailerStartOffset = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3) +_codeSize;
+    //uint32_t symbolsStartOffset = trailerStartOffset +
+    //                              (sizeof(ELFSectionHeader) * /* # shdr */ 8) +
+     ////                             shStrTabNameLength;
+    //uint32_t symbolNamesStartOffset = symbolsStartOffset + 
+    //                                  (_numSymbols + /* UNDEF */ 2) * sizeof(ELFSymbol);
     //uint32_t relaStartOffset = symbolNamesStartOffset + _totalELFSymbolNamesLength;
     uint32_t shNameOffset = 0;
     //printf("\n symbolNamesStartOffset %d \n ",symbolNamesStartOffset);
     //printf("\n _totalELFSymbolNamesLength %d \n ",_totalELFSymbolNamesLength);
-    dynamicSectionStartOffset = dataSectionStartOffset + _dataSize;
+    //dynamicSectionStartOffset = dataSectionStartOffset + _dataSize;
     //printf("\n dynamicSectionStartOffset %d \n ",dynamicSectionStartOffset);   
     initializeZeroSection();
     shNameOffset += sizeof(_zeroSectionName);
@@ -407,21 +408,21 @@ ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
     shNameOffset += sizeof(_relaSectionName); */
 
     initializeDynSymSection(shNameOffset, 
-                            (ELFAddress) symbolsStartOffset,
-                            symbolsStartOffset,
-                            symbolNamesStartOffset - symbolsStartOffset,
+                            (ELFAddress) dynsymSectionStartOffset,
+                            dynsymSectionStartOffset,
+                            dynstrSectionStartOffset - dynsymSectionStartOffset,
                             /*Index of dynStrTab*/ 4);
     shNameOffset += sizeof(_dynSymSectionName);
 
     initializeStrTabSection(shNameOffset, 
-                            (ELFAddress) (symbolsStartOffset - shStrTabNameLength),
-                            symbolsStartOffset - shStrTabNameLength, 
+                            (ELFAddress) shstrtabSectionStartOffset,
+                            shstrtabSectionStartOffset, 
                             shStrTabNameLength);
     shNameOffset += sizeof(_shStrTabSectionName);
 
     initializeDynStrSection(shNameOffset,
-                            (ELFAddress) symbolNamesStartOffset,
-                            symbolNamesStartOffset, 
+                            (ELFAddress) dynstrSectionStartOffset,
+                            dynstrSectionStartOffset, 
                             _totalELFSymbolNamesLength);
     shNameOffset += sizeof(_dynStrSectionName);
 
@@ -530,9 +531,9 @@ ELF::ELFSharedObjectGenerator::emitAOTELFFile(const char * filename)
    //     writeSectionHeaderToFile(elfFile, _relaSection);
    // }
 
-    writeSectionHeaderToFile(elfFile, _dynSymSection);
-
     writeSectionHeaderToFile(elfFile, _shStrTabSection);
+
+    writeSectionHeaderToFile(elfFile, _dynSymSection);
 
     writeSectionHeaderToFile(elfFile, _dynStrSection);
 
