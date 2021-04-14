@@ -67,177 +67,11 @@ ELF::ELFSharedObjectGenerator::initialize(void)
 
 }
 
-
-void 
-ELF::ELFSharedObjectGenerator::initializeAotCDSection(uint32_t shName, ELFAddress shAddress,
-                                                 ELFOffset shOffset, uint32_t shSize)
-{
-
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-    
-    shdr->sh_name = shName;
-    shdr->sh_type = SHT_PROGBITS;
-    shdr->sh_flags = SHF_ALLOC | SHF_WRITE | SHF_EXECINSTR ;//SHF_ALLOC | SHF_EXECINSTR;
-    shdr->sh_addr = shAddress;//shAddress;
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = 0;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = 16;
-    shdr->sh_entsize = 0;
-
-    _AotCDSection = shdr;
-    strcpy(_AotCDSectionName, ".aotcd");
-}
-
-void 
-ELF::ELFSharedObjectGenerator::initializeDataSection(uint32_t shName, ELFAddress shAddress,
-                                                 ELFOffset shOffset, uint32_t shSize)
-{
-
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-    
-    shdr->sh_name = shName;
-    shdr->sh_type = SHT_PROGBITS;
-    shdr->sh_flags = SHF_ALLOC | SHF_WRITE;
-    shdr->sh_addr = shAddress + (ELFAddress) 0x200000;
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = 0;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = 8;
-    shdr->sh_entsize = 0;
-
-    _dataSection = shdr;
-    strcpy(_dataSectionName, ".data");
-}
-    
-void
-ELF::ELFSharedObjectGenerator::initializeDynSymSection(uint32_t shName, ELFAddress shAddress, ELFOffset shOffset, uint32_t shSize, uint32_t shLink)
-{
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-
-    shdr->sh_name = shName;
-    shdr->sh_type = SHT_DYNSYM; // SHT_DYNSYM
-    shdr->sh_flags = 0; //SHF_ALLOC;
-    shdr->sh_addr = shAddress; //// fake address because not continuous
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = shLink; // dynamic string table index
-    shdr->sh_info = 1; // index of first non-local symbol: for now all symbols are global //One greater than the symbol table index of the last local symbol (binding STB_LOCAL).
-    shdr->sh_addralign = TR::Compiler->target.is64Bit() ? 8 : 4;
-    shdr->sh_entsize = sizeof(ELFSymbol);
-
-    _dynSymSection = shdr;
-    strcpy(_dynSymSectionName, ".dynsym");
-}
-
-void
-ELF::ELFSharedObjectGenerator::initializeStrTabSection(uint32_t shName, ELFAddress shAddress, ELFOffset shOffset, uint32_t shSize)
-{    
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-    
-    shdr->sh_name = shName;
-    shdr->sh_type = SHT_STRTAB;
-    shdr->sh_flags = 0;
-    shdr->sh_addr = shAddress;
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = 0;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = 1;
-    shdr->sh_entsize = 0;
-
-    _shStrTabSection = shdr;
-    strcpy(_shStrTabSectionName, ".shstrtab");
-}
-
-void
-ELF::ELFSharedObjectGenerator::initializeDynStrSection(uint32_t shName, ELFAddress shAddress, ELFOffset shOffset, uint32_t shSize)
-{
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-
-    shdr->sh_name = shName;
-    shdr->sh_type = SHT_STRTAB;
-    shdr->sh_flags = 0;
-    shdr->sh_addr = shAddress;
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = 0;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = 1;
-    shdr->sh_entsize = 0;
-
-    _dynStrSection = shdr;
-    strcpy(_dynStrSectionName, ".dynstr");
-}
-
-void
-ELF::ELFSharedObjectGenerator::initializeRelaSection(uint32_t shName, ELFAddress shAddress, ELFOffset shOffset, uint32_t shSize)
-{
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-
-    shdr->sh_name = shName;
-    shdr->sh_type = SHT_RELA;
-    shdr->sh_flags = 0;
-    shdr->sh_addr = shAddress;
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = 3; // dynsymSection index in the elf file. Kept this hardcoded for now as this shdr applies to relocatable only
-    shdr->sh_info = 1;
-    shdr->sh_addralign = TR::Compiler->target.is64Bit() ? 8 : 4;
-    shdr->sh_entsize = sizeof(ELFRela);
-
-    _relaSection = shdr;
-    strcpy(_relaSectionName, ".rela.text");
-}
-
-void
-ELF::ELFSharedObjectGenerator::initializeDynamicSection(uint32_t shName, ELFAddress shAddress, ELFOffset shOffset, uint32_t shSize)
-{
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-
-    shdr->sh_name = shName;
-    shdr->sh_type = SHT_DYNAMIC;
-    shdr->sh_flags = 0;
-    shdr->sh_addr = shAddress + (ELFAddress) 0x200000;
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = 2;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = TR::Compiler->target.is64Bit() ? 8 : 4;    
-    shdr->sh_entsize = sizeof(ELFDynamic);
-
-    _dynamicSection = shdr;
-    strcpy(_dynamicSectionName, ".dynamic");
-}
-
-void
-ELF::ELFSharedObjectGenerator::initializeHashSection(uint32_t shName, ELFAddress shAddress, ELFOffset shOffset, uint32_t shSize)
-{
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-
-    shdr->sh_name = shName;
-    shdr->sh_type = SHT_HASH;
-    shdr->sh_flags = SHF_ALLOC;
-    shdr->sh_addr = shAddress;
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = 3;
-    shdr->sh_info = 0;
-    shdr->sh_addralign = TR::Compiler->target.is64Bit() ? 8 : 4;  
-    shdr->sh_entsize = 0;
-
-    _hashSection = shdr;
-    strcpy(_hashSectionName, ".hash");
-}
-
 void 
 ELF::ELFSharedObjectGenerator::writeCodeSegmentToFile(::FILE *fp)
 {
     fwrite(static_cast<const void *>(_textSegmentStart), sizeof(uint8_t), _codeSize, fp);
 }
-
 
 void
 ELF::ELFSharedObjectGenerator::initializePHdr(void)
@@ -263,8 +97,8 @@ ELF::ELFSharedObjectGenerator::initializePHdr(void)
     _programHeaderLoadRX->p_offset = 0; //offset of program header from the first byte of file to be loaded
     _programHeaderLoadRX->p_vaddr = 0; //(ELFAddress) _codeStart; //virtual address to load into
     _programHeaderLoadRX->p_paddr = 0; //(ELFAddress) _codeStart; //physical address to load into
-    _programHeaderLoadRX->p_filesz = (Elf64_Xword) (dynamicSectionStartOffset );//_codeSize; //in-file size
-    _programHeaderLoadRX->p_memsz = (Elf64_Xword) (dynamicSectionStartOffset );//_codeSize; //in-memory size
+    _programHeaderLoadRX->p_filesz = (Elf64_Xword) (dataSectionStartOffset );//_codeSize; //in-file size
+    _programHeaderLoadRX->p_memsz = (Elf64_Xword) (dataSectionStartOffset );//_codeSize; //in-memory size
     _programHeaderLoadRX->p_flags = PF_X | PF_R | PF_W; // should add PF_W if we get around to loading patchable code
     _programHeaderLoadRX->p_align = 0x200000;
 
@@ -360,117 +194,122 @@ ELF::ELFSharedObjectGenerator::initializeSectionOffsets(void)
     //printf("\n dynamicSectionStartOffset %d \n ",dynamicSectionStartOffset);                   
 }
 
+ELF::ELFSharedObjectGenerator::ELFSectionHeader * 
+ELF::ELFSharedObjectGenerator::initializeSection(uint32_t shName, uint32_t shType, uint32_t shFlags, ELFAddress shAddress,
+                                                 ELFOffset shOffset,  uint32_t shSize, uint32_t shLink, uint32_t shInfo, uint32_t shAddralign, uint32_t shEntsize)
+{
+    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
+    
+    shdr->sh_name = shName;
+    shdr->sh_type = shType;
+    shdr->sh_flags = shFlags;//SHF_ALLOC | SHF_EXECINSTR;
+    shdr->sh_addr = shAddress;//shAddress;
+    shdr->sh_offset = shOffset;
+    shdr->sh_size = shSize;
+    shdr->sh_link = shLink;
+    shdr->sh_info = shInfo;
+    shdr->sh_addralign = shAddralign;
+    shdr->sh_entsize = shEntsize;
+    return shdr;               
+}
+
+
 void
 ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
 {    
-    //printf("\n In ELFSharedObjectGenerator buildSectionHeaders\n");
-    //shStrTabNameLength = 0;
-    //dynamicSectionStartOffset = 0;
-    //shStrTabNameLength = sizeof(_zeroSectionName) +
-    //                              sizeof(_shStrTabSectionName) +
-     //                             sizeof(_AotCDSectionName) +
-                                  //sizeof(_relaSectionName) +
-     //                             sizeof(_dynSymSectionName) +
-     //                             sizeof(_dynStrSectionName) +
-     //                             sizeof(_hashSectionName) +
-     //                             sizeof(_dataSectionName) +
-      //                            sizeof(_dynamicSectionName);
-                                  
-
-    //printf("\n shStrTabNameLength %d \n ",shStrTabNameLength); 
-    //printf("\n _codeSize %d \n ",_codeSize); 
-
-    /* offset calculations */
-    //uint32_t trailerStartOffset = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3) +_codeSize;
-    //uint32_t symbolsStartOffset = trailerStartOffset +
-    //                              (sizeof(ELFSectionHeader) * /* # shdr */ 8) +
-     ////                             shStrTabNameLength;
-    //uint32_t symbolNamesStartOffset = symbolsStartOffset + 
-    //                                  (_numSymbols + /* UNDEF */ 2) * sizeof(ELFSymbol);
-    //uint32_t relaStartOffset = symbolNamesStartOffset + _totalELFSymbolNamesLength;
     uint32_t shNameOffset = 0;
-    //printf("\n symbolNamesStartOffset %d \n ",symbolNamesStartOffset);
-    //printf("\n _totalELFSymbolNamesLength %d \n ",_totalELFSymbolNamesLength);
-    //dynamicSectionStartOffset = dataSectionStartOffset + _dataSize;
-    //printf("\n dynamicSectionStartOffset %d \n ",dynamicSectionStartOffset);   
     initializeZeroSection();
     shNameOffset += sizeof(_zeroSectionName);
 
-    initializeAotCDSection(shNameOffset,
-                          (ELFAddress) AotCDSectionStartOffset,
-                          sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3),
-                          _codeSize);
+    _AotCDSection = initializeSection(shNameOffset,
+						   SHT_PROGBITS,
+                           SHF_ALLOC | SHF_WRITE | SHF_EXECINSTR, 
+                           (ELFAddress) AotCDSectionStartOffset,
+                           (ELFOffset) AotCDSectionStartOffset,
+                           _codeSize,
+                           0,
+                           0,
+                           16,
+                           0);
     shNameOffset += sizeof(_AotCDSectionName);
 
-/*     initializeRelaSection(shNameOffset,
-                          relaStartOffset, 
-                          _numRelocations * sizeof(ELFRela));
-    shNameOffset += sizeof(_relaSectionName); */
+    _shStrTabSection = initializeSection(shNameOffset, 
+                            SHT_STRTAB,
+                            0,
+                            (ELFAddress) shstrtabSectionStartOffset,
+                            (ELFOffset) shstrtabSectionStartOffset, 
+                            shStrTabNameLength,
+                            0,
+                            0,
+                            1,
+                            0);
+    shNameOffset += sizeof(_shStrTabSectionName);
 
-    initializeDynSymSection(shNameOffset, 
+    _dynSymSection = initializeSection(shNameOffset,
+                            SHT_DYNSYM,
+                            0, 
                             (ELFAddress) dynsymSectionStartOffset,
                             dynsymSectionStartOffset,
                             dynstrSectionStartOffset - dynsymSectionStartOffset,
-                            /*Index of dynStrTab*/ 4);
+                            /*Index of dynStrTab*/ 4,
+                            1,
+                            TR::Compiler->target.is64Bit() ? 8 : 4,
+                            sizeof(ELFSymbol));
     shNameOffset += sizeof(_dynSymSectionName);
 
-    initializeStrTabSection(shNameOffset, 
-                            (ELFAddress) shstrtabSectionStartOffset,
-                            shstrtabSectionStartOffset, 
-                            shStrTabNameLength);
-    shNameOffset += sizeof(_shStrTabSectionName);
-
-    initializeDynStrSection(shNameOffset,
+    _dynStrSection = initializeSection(shNameOffset,
+                            SHT_STRTAB,
+                            0,
                             (ELFAddress) dynstrSectionStartOffset,
                             dynstrSectionStartOffset, 
-                            _totalELFSymbolNamesLength);
-    shNameOffset += sizeof(_dynStrSectionName);
+                            _totalELFSymbolNamesLength,
+                            0,
+                            0,
+                            1,
+                            0);
+    shNameOffset += sizeof(_dynStrSectionName);    
 
-    initializeHashSection(shNameOffset,
-                            (ELFAddress) hashSectionStartOffset, 
-                            hashSectionStartOffset, 
-                            sizeof(uint32_t) * (2 + nchain + nbucket));
+    _hashSection = initializeSection(shNameOffset,
+                          SHT_HASH,
+                          SHF_ALLOC,
+                          (ELFAddress) hashSectionStartOffset, 
+                          hashSectionStartOffset, 
+                          sizeof(uint32_t) * (2 + nchain + nbucket),
+                          3,
+                          0,
+                          TR::Compiler->target.is64Bit() ? 8 : 4,
+                          0);
     shNameOffset += sizeof(_hashSectionName);
 
-    initializeDataSection(shNameOffset,
-                          (ELFAddress) dataSectionStartOffset,
+    _dataSection = initializeSection(shNameOffset,
+                          SHT_PROGBITS,
+                          SHF_ALLOC | SHF_WRITE,
+                          (ELFAddress) dataSectionStartOffset + (ELFAddress) 0x200000,
                           dataSectionStartOffset,
-                          _dataSize);
+                          _dataSize,
+                          0,
+                          0,
+                          8,
+                          0);
     shNameOffset += sizeof(_dataSectionName);
 
-    initializeDynamicSection(shNameOffset,
+    _dynamicSection = initializeSection(shNameOffset,
+                            SHT_DYNAMIC,
+                            0,
                             (ELFAddress) dynamicSectionStartOffset, 
                             dynamicSectionStartOffset, 
-                            sizeof(ELFDynamic) * 6);
+                            sizeof(ELFDynamic) * 6,
+                            2,
+                            0,
+                            TR::Compiler->target.is64Bit() ? 8 : 4,
+                            sizeof(ELFDynamic));
     shNameOffset += sizeof(_dynamicSectionName);
-
-}
-
-bool 
-ELF::ELFSharedObjectGenerator::emitELF(const char * filename,
-                TR::CodeCacheSymbol *symbols, uint32_t numSymbols,
-                uint32_t totalELFSymbolNamesLength,
-                TR::CodeCacheRelocationInfo *relocations,
-                uint32_t numRelocations)
-{
-    _symbols = symbols;
-    _relocations = relocations;
-    _numSymbols = numSymbols;
-    _numRelocations = numRelocations;
-    _totalELFSymbolNamesLength = totalELFSymbolNamesLength;
-
-    buildSectionHeaders();
-    
-    return emitELFFile(filename);
 }
 
 bool 
 ELF::ELFSharedObjectGenerator::emitAOTELF(const char * filename,
-                //TR::CodeCacheSymbol *symbols, 
                 uint32_t numSymbols,
-                uint32_t totalELFSymbolNamesLength)//,
-                //TR::CodeCacheRelocationInfo *relocations,
-               // uint32_t numRelocations)
+                uint32_t totalELFSymbolNamesLength)
 {
     //_symbols = symbols;
     //_relocations = relocations;
@@ -541,7 +380,7 @@ ELF::ELFSharedObjectGenerator::emitAOTELFFile(const char * filename)
 
     writeSectionHeaderToFile(elfFile, _dataSection);
     
-   writeSectionHeaderToFile(elfFile, _dynamicSection);
+    writeSectionHeaderToFile(elfFile, _dynamicSection);
 
     writeSectionNameToFile(elfFile, _zeroSectionName, sizeof(_zeroSectionName));
 
@@ -550,10 +389,10 @@ ELF::ELFSharedObjectGenerator::emitAOTELFFile(const char * filename)
     //if (_relaSection)
    // {
    //     writeSectionNameToFile(elfFile, _relaSectionName, sizeof(_relaSectionName));
-  //  }
-    writeSectionNameToFile(elfFile, _dynSymSectionName, sizeof(_dynSymSectionName));
-
+  //  } 
     writeSectionNameToFile(elfFile, _shStrTabSectionName, sizeof(_shStrTabSectionName));
+    
+    writeSectionNameToFile(elfFile, _dynSymSectionName, sizeof(_dynSymSectionName));
 
     writeSectionNameToFile(elfFile, _dynStrSectionName, sizeof(_dynStrSectionName));
 
@@ -857,13 +696,6 @@ ELF::ELFSharedObjectGenerator::initializeHashValues(uint32_t numSymbols)
    return reinterpret_cast<TR::AOTStorageInterface*> (this);
    }
 
-
-/* uint8_t* ELF::ELFSharedObjectGenerator::loadEntry(const char* key)
-   {
-   TR_UNIMPLEMENTED();
-   return 0;
-   } */
-
 void 
 ELF::ELFSharedObjectGenerator::storeEntry(const char* key, TR::AOTMethodHeader* hdr)
    {
@@ -963,7 +795,6 @@ void ELF::ELFSharedObjectGenerator::consolidateBuffers(uint32_t methodCount, cha
     storeEntries(filename, ptrStart, total_BufferMethodNameLength.first, total_BufferMethodNameLength.second, methodCount);   
     }
 
-
 std::pair<uint32_t, uint32_t> 
 ELF::ELFSharedObjectGenerator::calculateAggregateSize()
     {
@@ -1006,7 +837,6 @@ ELF::ELFSharedObjectGenerator::calculateAggregateBufferSize()
     totalMethodNameLength += strlen(_DYNAMIC) + 1;
     return std::make_pair(totalBufferSize,totalMethodNameLength);
     }
-
 
 void 
 ELF::ELFSharedObjectGenerator::storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount)

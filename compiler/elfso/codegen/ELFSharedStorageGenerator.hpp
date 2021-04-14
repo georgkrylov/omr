@@ -115,106 +115,6 @@ protected:
     void writeCodeSegmentToFile(::FILE *fp);
 
 
-    void initializeAotCDSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-    
-    /**
-     * Set up the trailer data section
-     * @param[in] shName the section header name
-     * @param[in] shAddress the section header address
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeDataSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-    
-    /**
-     * Set up the trailer dynamic symbol section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-     * @param[in] shLink the section header link
-    */
-    void initializeDynSymSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize, 
-                                uint32_t shLink
-                                );
-
-    /**
-     * Set up the trailer string table section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeStrTabSection( 
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset,  
-                                uint32_t shSize
-                                );
-
-    /**
-     * Set up the trailer dynamic string section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeDynStrSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                                );
-
-    /**
-     * Set up the trailer Rela section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeRelaSection( 
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-    
-    /**
-     * Set up the trailer Rela section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeDynamicSection( 
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-    
-    void initializeHashSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-
-    /**
-     * Initializes ELF Trailer struct members, with calls to helper methods
-     * implemented by the parent class and then lays out the
-     * symbols to be written in memory
-    */
     virtual void buildSectionHeaders(void);
 
     virtual void initializeSectionOffsets(void);
@@ -222,7 +122,9 @@ protected:
     virtual void initializeSectionNames(void);
 
     void writeProgramHeaderToFile(::FILE *fp);
-
+    
+    ELFSectionHeader * initializeSection(uint32_t shName, uint32_t shType, uint32_t shFlags, ELFAddress shAddress,
+                                                 ELFOffset shOffset,  uint32_t shSize, uint32_t shLink, uint32_t shInfo, uint32_t shAddralign, uint32_t shEntsize);
 
 public:
 
