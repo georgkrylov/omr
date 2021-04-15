@@ -110,10 +110,11 @@ protected:
     /**
      * Initializes ELF Program Header, required for executable ELF
     */
-    virtual void initializePHdr(void);
-
+    virtual ELFProgramHeader * initializeProgramHeader(uint32_t type, ELFOffset offset, ELFAddress vaddr, ELFAddress paddr, 
+                                                uint32_t filesz, uint32_t memsz, uint32_t flags, uint32_t align);
     void writeCodeSegmentToFile(::FILE *fp);
 
+    void buildProgramHeaders();
 
     virtual void buildSectionHeaders(void);
 
@@ -178,7 +179,7 @@ public:
     ELFSectionHeader *_AotCDSection;
     char              _AotCDSectionName[7];
     
-    uint32_t AotCDSectionStartOffset;
+    uint32_t aotcdSectionStartOffset;
     uint32_t dataSectionStartOffset;
     uint32_t dynsymSectionStartOffset;
     uint32_t shstrtabSectionStartOffset;

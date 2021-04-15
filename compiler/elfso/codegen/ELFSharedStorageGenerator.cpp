@@ -73,53 +73,54 @@ ELF::ELFSharedObjectGenerator::writeCodeSegmentToFile(::FILE *fp)
     fwrite(static_cast<const void *>(_textSegmentStart), sizeof(uint8_t), _codeSize, fp);
 }
 
-void
-ELF::ELFSharedObjectGenerator::initializePHdr(void)
+ELF::ELFSharedObjectGenerator::ELFProgramHeader *
+ELF::ELFSharedObjectGenerator::initializeProgramHeader(uint32_t type, ELFOffset offset, ELFAddress vaddr, ELFAddress paddr, 
+                                                uint32_t filesz, uint32_t memsz, uint32_t flags, uint32_t align)
 {
-    ELFProgramHeader *phdr_loadR =
+   ELFProgramHeader *phdr =
     static_cast<ELFProgramHeader *>(_rawAllocator.allocate(sizeof(ELFProgramHeader),
-    std::nothrow));
+    std::nothrow)); 
 
-    ELFProgramHeader *phdr_loadW =
-    static_cast<ELFProgramHeader *>(_rawAllocator.allocate(sizeof(ELFProgramHeader),
-    std::nothrow));
+    phdr->p_type = type; //should be loaded in memory
+    phdr->p_offset = offset; //offset of program header from the first byte of file to be loaded
+    phdr->p_vaddr = vaddr; //(ELFAddress) _codeStart; //virtual address to load into
+    phdr->p_paddr = paddr; //(ELFAddress) _codeStart; //physical address to load into
+    phdr->p_filesz = filesz;//_codeSize; //in-file size
+    phdr->p_memsz = memsz;//_codeSize; //in-memory size
+    phdr->p_flags = flags; // should add PF_W if we get around to loading patchable code
+    phdr->p_align = align;
+    return phdr;
+}
 
-    ELFProgramHeader *phdr_dynamic =
-    static_cast<ELFProgramHeader *>(_rawAllocator.allocate(sizeof(ELFProgramHeader),
-    std::nothrow));
-    
-    _programHeaderLoadRX = phdr_loadR;
-    _programHeaderLoadRW = phdr_loadW;
-    _programHeaderDynamic = phdr_dynamic;
+void
+ELF::ELFSharedObjectGenerator::buildProgramHeaders()
+{
+    _programHeaderLoadRX = initializeProgramHeader(  PT_LOAD, //should be loaded in memory
+                                            0, //offset of program header from the first byte of file to be loaded
+                                            0, //(ELFAddress) _codeStart; //virtual address to load into
+                                            0, //(ELFAddress) _codeStart; //physical address to load into
+                                            (Elf64_Xword) (dataSectionStartOffset ),//_codeSize; //in-file size
+                                            (Elf64_Xword) (dataSectionStartOffset ),//_codeSize; //in-memory size
+                                            PF_X | PF_R | PF_W, // should add PF_W if we get around to loading patchable code
+                                            0x200000);
 
-    //printf("\n In initializePHdr\n");
-    _programHeaderLoadRX->p_type = PT_LOAD; //should be loaded in memory
-    _programHeaderLoadRX->p_offset = 0; //offset of program header from the first byte of file to be loaded
-    _programHeaderLoadRX->p_vaddr = 0; //(ELFAddress) _codeStart; //virtual address to load into
-    _programHeaderLoadRX->p_paddr = 0; //(ELFAddress) _codeStart; //physical address to load into
-    _programHeaderLoadRX->p_filesz = (Elf64_Xword) (dataSectionStartOffset );//_codeSize; //in-file size
-    _programHeaderLoadRX->p_memsz = (Elf64_Xword) (dataSectionStartOffset );//_codeSize; //in-memory size
-    _programHeaderLoadRX->p_flags = PF_X | PF_R | PF_W; // should add PF_W if we get around to loading patchable code
-    _programHeaderLoadRX->p_align = 0x200000;
+    _programHeaderLoadRW = initializeProgramHeader(  PT_LOAD, //should be loaded in memory
+                                            (ELFOffset) dataSectionStartOffset, //offset of program header from the first byte of file to be loaded
+                                            (ELFAddress) (dataSectionStartOffset + 0x200000), //(ELFAddress) _codeStart; //virtual address to load into
+                                            (ELFAddress) (dataSectionStartOffset + 0x200000), //(ELFAddress) _codeStart; //physical address to load into
+                                            (Elf64_Xword) (_dataSize + (sizeof(ELFDynamic) * 6)),//_codeSize; //in-file size
+                                            (Elf64_Xword) (_dataSize + (sizeof(ELFDynamic) * 6)),//_codeSize; //in-memory size
+                                            PF_R | PF_W, // should add PF_W if we get around to loading patchable code
+                                            0x200000);
 
-    _programHeaderLoadRW->p_type = PT_LOAD; //should be loaded in memory
-    _programHeaderLoadRW->p_offset = (ELFOffset) dataSectionStartOffset; //offset of program header from the first byte of file to be loaded
-    _programHeaderLoadRW->p_vaddr = (ELFAddress) (dataSectionStartOffset + 0x200000); //(ELFAddress) _codeStart; //virtual address to load into
-    _programHeaderLoadRW->p_paddr = (ELFAddress) (dataSectionStartOffset + 0x200000); //(ELFAddress) _codeStart; //physical address to load into
-    _programHeaderLoadRW->p_filesz = (Elf64_Xword) (_dataSize + (sizeof(ELFDynamic) * 6));//_codeSize; //in-file size
-    _programHeaderLoadRW->p_memsz = (Elf64_Xword) (_dataSize + (sizeof(ELFDynamic) * 6));//_codeSize; //in-memory size
-    _programHeaderLoadRW->p_flags = PF_R | PF_W; // should add PF_W if we get around to loading patchable code
-    _programHeaderLoadRW->p_align = 0x200000;
-
-    _programHeaderDynamic->p_type = PT_DYNAMIC; //should be loaded in memory
-    _programHeaderDynamic->p_offset = (ELFOffset) dynamicSectionStartOffset; //offset of program header from the first byte of file to be loaded
-    _programHeaderDynamic->p_vaddr = (ELFAddress) (dynamicSectionStartOffset + 0x200000); //virtual address to load into
-    _programHeaderDynamic->p_paddr = (ELFAddress) (dynamicSectionStartOffset + 0x200000); //physical address to load into
-    _programHeaderDynamic->p_filesz = (Elf64_Xword) (sizeof(ELFDynamic) * 6); //in-file size
-    _programHeaderDynamic->p_memsz = (Elf64_Xword) (sizeof(ELFDynamic) * 6); //in-memory size
-    _programHeaderDynamic->p_flags = PF_R | PF_W; // should add PF_W if we get around to loading patchable code
-    _programHeaderDynamic->p_align = 0x8;
-    //printf("\n Out initializePHdr\n");
+    _programHeaderDynamic = initializeProgramHeader(  PT_DYNAMIC, //should be loaded in memory
+                                            (ELFOffset) dynamicSectionStartOffset, //offset of program header from the first byte of file to be loaded
+                                            (ELFAddress) (dynamicSectionStartOffset + 0x200000), //virtual address to load into
+                                            (ELFAddress) (dynamicSectionStartOffset + 0x200000), //physical address to load into
+                                            (Elf64_Xword) (sizeof(ELFDynamic) * 6), //in-file size
+                                            (Elf64_Xword) (sizeof(ELFDynamic) * 6), //in-memory size
+                                            PF_R | PF_W, // should add PF_W if we get around to loading patchable code
+                                            0x8);
 }
 
 void
@@ -170,7 +171,7 @@ ELF::ELFSharedObjectGenerator::initializeSectionOffsets(void)
     //printf("\n In initializeSectionOffsets\n");
     dynamicSectionStartOffset = 0;
     
-    AotCDSectionStartOffset = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3);
+    aotcdSectionStartOffset = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3);
     //printf("\n textSectionStartOffset %d \n ",textSectionStartOffset);
     shstrtabSectionStartOffset = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3) + _codeSize +   
                                   (sizeof(ELFSectionHeader) * /* # shdr */ 8);
@@ -224,8 +225,8 @@ ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
     _AotCDSection = initializeSection(shNameOffset,
 						   SHT_PROGBITS,
                            SHF_ALLOC | SHF_WRITE | SHF_EXECINSTR, 
-                           (ELFAddress) AotCDSectionStartOffset,
-                           (ELFOffset) AotCDSectionStartOffset,
+                           (ELFAddress) aotcdSectionStartOffset,
+                           (ELFOffset) aotcdSectionStartOffset,
                            _codeSize,
                            0,
                            0,
@@ -332,7 +333,7 @@ ELF::ELFSharedObjectGenerator::emitAOTELF(const char * filename,
     
     initializeSectionOffsets();
 
-    initializePHdr();
+    buildProgramHeaders();
 
     buildSectionHeaders();
     //printf("\n Before emitELFFile\n");
@@ -456,7 +457,7 @@ ELF::ELFSharedObjectGenerator::processAllSymbols(::FILE *fp)
     //elfSym->st_info = ELF_ST_INFO(STB_GLOBAL,STT_FUNC);
     /* this while loop re-uses the ELFSymbol and write
        CodeCacheSymbol info into file */
-    uint32_t symbolDefStart = AotCDSectionStartOffset;
+    uint32_t symbolDefStart = aotcdSectionStartOffset;
     TR::AOTMethodHeader* hdr;
 
      // for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
