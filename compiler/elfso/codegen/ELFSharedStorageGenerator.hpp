@@ -141,11 +141,6 @@ public:
      * @param[in] numRelocations the total number of relocations
      * @return bool whether emitting ELF file succeeded
     */
-    bool emitELF(const char * filename,
-                TR::CodeCacheSymbol *symbols, uint32_t numSymbols,
-                uint32_t totalELFSymbolNamesLength,
-                TR::CodeCacheRelocationInfo *relocations,
-                uint32_t numRelocations);
 
      bool emitAOTELF(const char * filename,
                // TR::CodeCacheSymbol *symbols,
@@ -179,17 +174,9 @@ public:
     ELFSectionHeader *_AotCDSection;
     char              _AotCDSectionName[7];
     
-    uint32_t aotcdSectionStartOffset;
-    uint32_t dataSectionStartOffset;
-    uint32_t dynsymSectionStartOffset;
-    uint32_t shstrtabSectionStartOffset;
-    uint32_t dynstrSectionStartOffset;
-    //uint32_t relaSectionStartOffset;
-    uint32_t dynamicSectionStartOffset;
-    uint32_t hashSectionStartOffset;
     uint32_t shStrTabNameLength;
 
-    uint8_t *_textSegmentStart;
+    uint8_t *_codeSegmentStart;
 
     uint32_t nbucket;
     uint32_t nchain;
@@ -204,27 +191,23 @@ public:
 
    uint8_t* loadEntry(const char* key);
    
-
    void storeEntry(const char* key, TR::AOTMethodHeader* hdr);
 
    void consolidateCompiledCode(uint32_t methodCount, char * filename);
    void consolidateBuffers(uint32_t methodCount, char * filename);
    std::pair<uint32_t, uint32_t> calculateAggregateSize();
    std::pair<uint32_t, uint32_t> calculateAggregateBufferSize();
+   std::map<const char *,uint32_t> sectionOffsetMap;
    //void consolidateCompiledCode(uint8_t *ptrStart);
 
    void storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount);
-
-   void registerInMap(const char*  methodName,TR::AOTMethodHeader* header);
 
    void dynamicLoading(const char*  methodName);
 
 
 }; //class ELFSharedObjectGenerator
 
-//} //namespace ELF
-
-} //namespace TR
+} //namespace ELF
 
 #endif //LINUX
 
