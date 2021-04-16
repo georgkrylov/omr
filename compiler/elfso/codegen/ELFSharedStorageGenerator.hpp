@@ -174,6 +174,9 @@ public:
     ELFSectionHeader *_AotCDSection;
     char              _AotCDSectionName[7];
     
+    uint32_t numOfSections;
+    uint32_t numOfProgramHeaders;
+    uint32_t numOfDynamicEntries;
     uint32_t shStrTabNameLength;
 
     uint8_t *_codeSegmentStart;

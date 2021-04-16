@@ -48,6 +48,9 @@ ELF::ELFSharedObjectGenerator::ELFSharedObjectGenerator(TR::RawAllocator rawAllo
  ELF::ELFSharedObjectGenerator::ELFSharedObjectGenerator(TR::RawAllocator rawAllocator):
                             OMR::ELFSharedObjectGeneratorConnector(rawAllocator, 0, 0),  OMR::AOTStorageInterfaceConnector(), ELFDataMap(str_comparator)
                             {
+                                numOfSections = 8;
+                                numOfProgramHeaders = 3;
+                                numOfDynamicEntries = 6;
                                 initialize();
                             } 
 
@@ -89,6 +92,7 @@ ELF::ELFSharedObjectGenerator::initializeProgramHeader(uint32_t type, ELFOffset 
     phdr->p_memsz = memsz;//_codeSize; //in-memory size
     phdr->p_flags = flags; // should add PF_W if we get around to loading patchable code
     phdr->p_align = align;
+    
     return phdr;
 }
 
@@ -108,8 +112,8 @@ ELF::ELFSharedObjectGenerator::buildProgramHeaders()
                                             (ELFOffset) sectionOffsetMap[_dataSectionName], //offset of program header from the first byte of file to be loaded
                                             (ELFAddress) (sectionOffsetMap[_dataSectionName] + 0x200000), //(ELFAddress) _codeStart; //virtual address to load into
                                             (ELFAddress) (sectionOffsetMap[_dataSectionName] + 0x200000), //(ELFAddress) _codeStart; //physical address to load into
-                                            (Elf64_Xword) (_dataSize + (sizeof(ELFDynamic) * 6)),//_codeSize; //in-file size
-                                            (Elf64_Xword) (_dataSize + (sizeof(ELFDynamic) * 6)),//_codeSize; //in-memory size
+                                            (Elf64_Xword) (_dataSize + (sizeof(ELFDynamic) * numOfDynamicEntries)),//_codeSize; //in-file size
+                                            (Elf64_Xword) (_dataSize + (sizeof(ELFDynamic) * numOfDynamicEntries)),//_codeSize; //in-memory size
                                             PF_R | PF_W, // should add PF_W if we get around to loading patchable code
                                             0x200000);
 
@@ -117,8 +121,8 @@ ELF::ELFSharedObjectGenerator::buildProgramHeaders()
                                             (ELFOffset) sectionOffsetMap[_dynamicSectionName], //offset of program header from the first byte of file to be loaded
                                             (ELFAddress) (sectionOffsetMap[_dynamicSectionName] + 0x200000), //virtual address to load into
                                             (ELFAddress) (sectionOffsetMap[_dynamicSectionName] + 0x200000), //physical address to load into
-                                            (Elf64_Xword) (sizeof(ELFDynamic) * 6), //in-file size
-                                            (Elf64_Xword) (sizeof(ELFDynamic) * 6), //in-memory size
+                                            (Elf64_Xword) (sizeof(ELFDynamic) * numOfDynamicEntries), //in-file size
+                                            (Elf64_Xword) (sizeof(ELFDynamic) * numOfDynamicEntries), //in-memory size
                                             PF_R | PF_W, // should add PF_W if we get around to loading patchable code
                                             0x8);
 }
@@ -130,10 +134,10 @@ ELF::ELFSharedObjectGenerator::initializeELFHeader(void)
     _header->e_type = ET_DYN;           
     _header->e_entry = (ELFAddress) _codeSegmentStart; //no associated entry point for shared object ELF files
     _header->e_phoff = sizeof(ELFEHeader); //program header for shared object files
-    _header->e_shoff = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3) + _codeSize; //start of the section header table in bytes from the first byte of the ELF file
-    _header->e_phentsize = sizeof(ELFProgramHeader); //no program headers in shared object elf
-    _header->e_phnum = 3;
-    _header->e_shnum = 8; 
+    _header->e_shoff = sizeof(ELFEHeader) + ( sizeof(ELFProgramHeader) * numOfProgramHeaders ) + _codeSize; //start of the section header table in bytes from the first byte of the ELF file
+    _header->e_phentsize = sizeof(ELFProgramHeader); //program header size
+    _header->e_phnum = numOfProgramHeaders; //No of program headers
+    _header->e_shnum = numOfSections; //No of section headers
     _header->e_shstrndx = 2; //index of section header string table
     //printf("\n Out initializeELFHeader\n");
 }
@@ -144,6 +148,7 @@ ELF::ELFSharedObjectGenerator::initializeSectionNames(void)
     //printf("\n In initializeSectionNames\n");
     _zeroSectionName[0] = 0;
     shStrTabNameLength = 0;
+
     strcpy(_shStrTabSectionName, ".shstrtab");
     strcpy(_AotCDSectionName, ".aotcd");
     strcpy(_dynSymSectionName, ".dynsym");
@@ -155,7 +160,6 @@ ELF::ELFSharedObjectGenerator::initializeSectionNames(void)
     shStrTabNameLength = sizeof(_zeroSectionName) +
                                   sizeof(_shStrTabSectionName) +
                                   sizeof(_AotCDSectionName) +
-                                  //sizeof(_relaSectionName) +
                                   sizeof(_dynSymSectionName) +
                                   sizeof(_dynStrSectionName) +
                                   sizeof(_hashSectionName) +
@@ -169,18 +173,18 @@ void
 ELF::ELFSharedObjectGenerator::initializeSectionOffsets(void)
 { 
     //printf("\n In initializeSectionOffsets\n");
-    sectionOffsetMap[_AotCDSectionName] = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3);
+    sectionOffsetMap[_AotCDSectionName] = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader) * numOfProgramHeaders);
     //printf("\n textSectionStartOffset %d \n ",textSectionStartOffset);
     
-    sectionOffsetMap[_shStrTabSectionName] = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader)*3) + _codeSize +   
-                                  (sizeof(ELFSectionHeader) * /* # shdr */ 8);
+    sectionOffsetMap[_shStrTabSectionName] = sizeof(ELFEHeader) + ( sizeof(ELFProgramHeader) *numOfProgramHeaders ) + _codeSize +   
+                                             (sizeof(ELFSectionHeader) * /* # shdr */ numOfSections);
     
     sectionOffsetMap[_dynSymSectionName]  =  sectionOffsetMap[_shStrTabSectionName] +
-                                  shStrTabNameLength;
+                                                shStrTabNameLength;
     //printf("\n dynsymSectionStartOffset %d \n ",dynsymSectionStartOffset);
 
     sectionOffsetMap[_dynStrSectionName]  = sectionOffsetMap[_dynSymSectionName] + 
-                                      (_numSymbols + /* UNDEF */ 2) * sizeof(ELFSymbol);
+                                            (_numSymbols + /* UNDEF */ 2) * sizeof(ELFSymbol);
 
     //printf("\n _totalELFSymbolNamesLength %d \n ",_totalELFSymbolNamesLength);
     sectionOffsetMap[_hashSectionName] =  sectionOffsetMap[_dynStrSectionName] + _totalELFSymbolNamesLength;   
@@ -248,7 +252,7 @@ ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
                             (ELFAddress) sectionOffsetMap[_dynSymSectionName],
                             sectionOffsetMap[_dynSymSectionName],
                             sectionOffsetMap[_dynStrSectionName] - sectionOffsetMap[_dynSymSectionName],
-                            /*Index of dynStrTab*/ 4,
+                            4, //Index of dynStrTab
                             1,
                             TR::Compiler->target.is64Bit() ? 8 : 4,
                             sizeof(ELFSymbol));
@@ -272,7 +276,7 @@ ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
                           (ELFAddress) sectionOffsetMap[_hashSectionName], 
                           sectionOffsetMap[_hashSectionName], 
                           sizeof(uint32_t) * (2 + nchain + nbucket),
-                          3,
+                          3, //.dynsym section index
                           0,
                           TR::Compiler->target.is64Bit() ? 8 : 4,
                           0);
@@ -286,7 +290,7 @@ ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
                           _dataSize,
                           0,
                           0,
-                          8,
+                          TR::Compiler->target.is64Bit() ? 8 : 4,
                           0);
     shNameOffset += sizeof(_dataSectionName);
 
@@ -295,8 +299,8 @@ ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
                             0,
                             (ELFAddress) sectionOffsetMap[_dynamicSectionName], 
                             sectionOffsetMap[_dynamicSectionName], 
-                            sizeof(ELFDynamic) * 6,
-                            2,
+                            sizeof(ELFDynamic) * numOfDynamicEntries,
+                            2, 
                             0,
                             TR::Compiler->target.is64Bit() ? 8 : 4,
                             sizeof(ELFDynamic));
@@ -322,10 +326,10 @@ ELF::ELFSharedObjectGenerator::emitAOTELF(const char * filename,
     //printf("\n Size of data = %d", _dataSize);
 
     initializeHashValues(_numSymbols);
-   // printf("\n After initializeHashValues\n");
+    //printf("\n After initializeHashValues\n");
     
     initializeSectionNames();
-  //  printf("\n After initializeSectionNames\n");
+    //printf("\n After initializeSectionNames\n");
     
     initializeSectionOffsets();
 
@@ -512,14 +516,13 @@ ELF::ELFSharedObjectGenerator::processAllSymbols(::FILE *fp)
 void 
 ELF::ELFSharedObjectGenerator::writeSymbolToFile(::FILE *fp, ELFSymbol *elfSym, uint32_t st_name, unsigned char st_info, unsigned char st_other, ELFSection st_shndx, ELFAddress st_value, uint64_t st_size)
 {
-    ELFSymbol * elfSyms = static_cast<ELFSymbol*>(_rawAllocator.allocate(sizeof(ELFSymbol)));
-    elfSyms->st_name = st_name;
-    elfSyms->st_info = st_info;
-    elfSyms->st_other = st_other;
-    elfSyms->st_shndx = st_shndx;
-    elfSyms->st_value = st_value;
-    elfSyms->st_size = st_size;
-    fwrite(elfSyms, sizeof(uint8_t), sizeof(ELFSymbol), fp);
+    elfSym->st_name = st_name;
+    elfSym->st_info = st_info;
+    elfSym->st_other = st_other;
+    elfSym->st_shndx = st_shndx;
+    elfSym->st_value = st_value;
+    elfSym->st_size = st_size;
+    fwrite(elfSym, sizeof(uint8_t), sizeof(ELFSymbol), fp);
 }
 
 void
@@ -580,7 +583,7 @@ ELF::ELFSharedObjectGenerator::elfHashSysV(const char* symbolName)
 void 
 ELF::ELFSharedObjectGenerator::writeHashSectionToFile(::FILE *fp)
 {
-    uint8_t hash_index = 1;
+    uint32_t hash_index = 1;
 
     for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
         {
@@ -595,10 +598,10 @@ ELF::ELFSharedObjectGenerator::writeHashSectionToFile(::FILE *fp)
     mod_array[hash_index] = hash_array[hash_index] % nbucket;
     hash_index++;
 
-    for(int i = 0; i < nbucket; i++) 
+    for(uint32_t i = 0; i < nbucket; i++) 
         {
-        int flag = 0, temp = 0;
-        for(int j = 1; j < nchain; j++) 
+        uint32_t flag = 0, temp = 0;
+        for(uint32_t j = 1; j < nchain; j++) 
             {
             if(i == mod_array[j])
             {
@@ -619,31 +622,31 @@ ELF::ELFSharedObjectGenerator::writeHashSectionToFile(::FILE *fp)
             }
         }
 
-   // for(int i = 0; i < nchain; i++) 
-     //   {
-        //printf("\n hash_array[%d] = %u mod_array[%d] = %u chain_array[%u] = %u  ",i,hash_array[i],i,mod_array[i],i,chain_array[i]);
-     //   }
-  //  for(int i = 0; i < nbucket; i++) 
-    //    {
-        //printf("\n bucket_array[%d] = %u",i,bucket_array[i]);
-   //     }
+   /*  for(int i = 0; i < nchain; i++) 
+        {
+        printf("\n hash_array[%d] = %u mod_array[%d] = %u chain_array[%u] = %u  ",i,hash_array[i],i,mod_array[i],i,chain_array[i]);
+        }
+    for(int i = 0; i < nbucket; i++) 
+        {
+        printf("\n bucket_array[%d] = %u",i,bucket_array[i]);
+       } */
     
-    int written = 0;
+    uint32_t written = 0;
     written = fwrite(&nbucket,sizeof(uint32_t),1, fp);
     if (written == 0) {
-    printf("Error during writing to file 1!");
+        printf("Error during writing to file 1!");
     }
     written = fwrite(&nchain,sizeof(uint32_t),1, fp);
     if (written == 0) {
-    printf("Error during writing to file 2!");
+        printf("Error during writing to file 2!");
     }
     written = fwrite(bucket_array, sizeof(uint32_t), nbucket, fp);
     if (written == 0) {
-    printf("Error during writing to file 3!");
+        printf("Error during writing to file 3!");
     }
     written = fwrite(chain_array, sizeof(uint32_t), nchain, fp);
     if (written == 0) {
-    printf("Error during writing to file 4!");
+        printf("Error during writing to file 4!");
     }
 }
 
@@ -652,7 +655,7 @@ ELF::ELFSharedObjectGenerator::getNoOfBuckets(uint32_t numSymbols)
 {
     static const size_t elfBuckets[] = {0, 1, 3, 17, 37, 67, 97, 131, 197, 263, 521, 1031, 2053, 4099, 8209, 16411, 32771};
     size_t n = sizeof(elfBuckets) / sizeof(elfBuckets[0]);
-    for(int i = 0; i < n; i++)
+    for(uint32_t i = 0; i < n; i++)
     {
         if(elfBuckets[i] > numSymbols)
         {
@@ -666,26 +669,21 @@ ELF::ELFSharedObjectGenerator::getNoOfBuckets(uint32_t numSymbols)
 void 
 ELF::ELFSharedObjectGenerator::initializeHashValues(uint32_t numSymbols)
 {
-    //printf(" \n In initializeHashValues \n");
     nbucket = (uint32_t)getNoOfBuckets(numSymbols + 2);
-   // printf("\n nbucket = [%u]",nbucket);
     nchain = numSymbols + 2;
-   // printf("\n nchain = [%u]",nchain);
     bucket_array = static_cast<uint32_t*>(_rawAllocator.allocate(sizeof(uint32_t) * nbucket));
     chain_array = static_cast<uint32_t*>(_rawAllocator.allocate(sizeof(uint32_t) * nchain));
     hash_array = static_cast<uint32_t*>(_rawAllocator.allocate(sizeof(uint32_t) * nchain));
     mod_array = static_cast<uint32_t*>(_rawAllocator.allocate(sizeof(uint32_t) * nchain));
-    for(int i = 0; i < nchain; i++) 
-        {
+    
+    for(uint32_t i = 0; i < nchain; i++) {
         chain_array[i] = 0;
         hash_array[i] = 0;
         mod_array[i] = 0;
         }
-    for(int i = 0; i < nbucket; i++) 
-        {
+    for(uint32_t i = 0; i < nbucket; i++) {
         bucket_array[i] = 0;
         }
-   // printf(" \n Out initializeHashValues \n");
 }
 
  TR::AOTStorageInterface* ELF::ELFSharedObjectGenerator::self() //suspicious behaviour .. not sure about correctness
@@ -701,7 +699,7 @@ ELF::ELFSharedObjectGenerator::storeEntry(const char* key, TR::AOTMethodHeader* 
     //  printf("\n CompiledCodeSize = [ %d ]",hdr->self()->compiledCodeSize);
     //  printf("\n RelocationsDataStart = [ %p ]",hdr->self()->relocationsStart);
     //  printf("\n RelocationsDataSize = [ %d ]",hdr->self()->relocationsSize);
-      printf("\n Method Name = %s\n", key);
+      //printf("\n Method Name = %s\n", key);
       //_key = key;
       ELFDataMap[key] = hdr;
    }
@@ -715,12 +713,12 @@ ELF::ELFSharedObjectGenerator::consolidateCompiledCode(uint32_t methodCount, cha
     uint8_t *ptrStart, *ptrEnd; 
     std::pair<uint32_t, uint32_t> total_CodeSizeMethodNameLength;
     
-   for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
+   /* for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
         {
          const char *methodName;
          methodName = it->first;
          printf ("\n  methodName = %s\n", methodName);
-        }
+        } */
    
     total_CodeSizeMethodNameLength = calculateAggregateSize();
 
@@ -761,8 +759,8 @@ void ELF::ELFSharedObjectGenerator::consolidateBuffers(uint32_t methodCount, cha
     
     total_BufferMethodNameLength = calculateAggregateBufferSize();
 
-    printf("\n Total Buffer size = [ %d ]\n", total_BufferMethodNameLength.first);
-    printf("\n Total totalMethodNameLength = [ %d ]\n", total_BufferMethodNameLength.second);
+    //printf("\n Total Buffer size = [ %d ]\n", total_BufferMethodNameLength.first);
+    //printf("\n Total totalMethodNameLength = [ %d ]\n", total_BufferMethodNameLength.second);
     uint8_t* compiledCodeBuffer = (uint8_t*) malloc (total_BufferMethodNameLength.first);
     ptrStart = ptrEnd = compiledCodeBuffer;
 
@@ -773,7 +771,7 @@ void ELF::ELFSharedObjectGenerator::consolidateBuffers(uint32_t methodCount, cha
         ptrEnd += hdr->sizeOfSerializedVersion();
         
         }
-    printf("\n Consolidation done!\n");
+    //printf("\n Consolidation done!\n");
     /* char *inp = "_input.txt";
     char *soFilename = (char *) malloc (1 + strlen(filename) + strlen(inp));   
     strcpy(soFilename, filename);
