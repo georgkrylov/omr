@@ -509,12 +509,10 @@ public:
     ELFSharedObjectGenerator(TR::RawAllocator rawAllocator,
                             uint8_t const * codeStart, size_t codeSize);
 
-    ELFSharedObjectGenerator(TR::RawAllocator rawAllocator);
-
-
     ~ELFSharedObjectGenerator() throw()
     {
     }
+
 
 protected:
 
@@ -528,113 +526,16 @@ protected:
     */
     virtual void initializeELFHeader(void);
 
+    void setCodeSegmentDetails(uint8_t *codeStart, uint32_t codeSize, uint32_t numSymbols, uint32_t totalELFSymbolNamesLength);
     /**
      * Initializes ELF Program Header, required for executable ELF
     */
-    virtual void initializePHdr(void);
-
+    virtual ELFProgramHeader * initializeProgramHeader(uint32_t type, ELFOffset offset, ELFAddress vaddr, ELFAddress paddr, 
+                                                uint32_t filesz, uint32_t memsz, uint32_t flags, uint32_t align);
     void writeCodeSegmentToFile(::FILE *fp);
 
-     void initializeTextSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-    
-    /**
-     * Set up the trailer data section
-     * @param[in] shName the section header name
-     * @param[in] shAddress the section header address
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeDataSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-    
-    /**
-     * Set up the trailer dynamic symbol section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-     * @param[in] shLink the section header link
-    */
-    void initializeDynSymSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize, 
-                                uint32_t shLink
-                                );
+    void buildProgramHeaders();
 
-    /**
-     * Set up the trailer string table section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeStrTabSection( 
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset,  
-                                uint32_t shSize
-                                );
-
-    /**
-     * Set up the trailer dynamic string section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeDynStrSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                                );
-
-    /**
-     * Set up the trailer Rela section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeRelaSection( 
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-    
-    /**
-     * Set up the trailer Rela section
-     * @param[in] shName the section header name
-     * @param[in] shOffset the section header offset
-     * @param[in] shSize the section header size
-    */
-    void initializeDynamicSection( 
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-    
-    void initializeHashSection(
-                                uint32_t shName, 
-                                ELFAddress shAddress,
-                                ELFOffset shOffset, 
-                                uint32_t shSize
-                              );
-
-    /**
-     * Initializes ELF Trailer struct members, with calls to helper methods
-     * implemented by the parent class and then lays out the
-     * symbols to be written in memory
-    */
     virtual void buildSectionHeaders(void);
 
     virtual void initializeSectionOffsets(void);
@@ -642,7 +543,9 @@ protected:
     virtual void initializeSectionNames(void);
 
     void writeProgramHeaderToFile(::FILE *fp);
-
+    
+    ELFSectionHeader * initializeSection(uint32_t shName, uint32_t shType, uint32_t shFlags, ELFAddress shAddress,
+                                                 ELFOffset shOffset,  uint32_t shSize, uint32_t shLink, uint32_t shInfo, uint32_t shAddralign, uint32_t shEntsize);
 
 public:
 
@@ -658,22 +561,15 @@ public:
      * @param[in] numRelocations the total number of relocations
      * @return bool whether emitting ELF file succeeded
     */
-    bool emitELF(const char * filename,
-                TR::CodeCacheSymbol *symbols, uint32_t numSymbols,
-                uint32_t totalELFSymbolNamesLength,
-                TR::CodeCacheRelocationInfo *relocations,
-                uint32_t numRelocations);
 
-     bool emitAOTELF(const char * filename,
-               // TR::CodeCacheSymbol *symbols,
-                 uint32_t numSymbols,
-                uint32_t totalELFSymbolNamesLength);//,
+    bool emitELFSO(const char * filename);//,
                // TR::CodeCacheRelocationInfo *relocations,
-                //uint32_t numRelocations);
 
-    void writeAOTELFSymbolsToFile(::FILE *fp);
+    void processAllSymbols(::FILE *fp);
 
-    bool emitAOTELFFile(const char * filename);
+    void  writeSymbolToFile(::FILE *fp, ELFSymbol *elfSym, uint32_t st_name, unsigned char st_info, unsigned char st_other, ELFSection st_shndx, ELFAddress st_value, uint64_t st_size);
+
+    bool emitELFFile(const char * filename);
 
     void writeDynamicSectionEntries(::FILE *fp);
 
@@ -689,25 +585,29 @@ public:
 
     size_t getNoOfBuckets(uint32_t numSymbols);
 
-    uint32_t textSectionStartOffset;
-    uint32_t dataSectionStartOffset;
-    uint32_t dynsymSectionStartOffset;
-    uint32_t shstrtabSectionStartOffset;
-    uint32_t dynstrSectionStartOffset;
-    //uint32_t relaSectionStartOffset;
-    uint32_t dynamicSectionStartOffset;
-    uint32_t hashSectionStartOffset;
+    //using OMR::AOTStorageInterface::aotint;
+
+    ELFSectionHeader *_AotCDSection;
+    char              _AotCDSectionName[7];
+    
+    std::map<const char *,uint32_t> sectionOffsetMap;
+    
+    uint32_t numOfSections;
+    uint32_t numOfProgramHeaders;
+    uint32_t numOfDynamicEntries;
     uint32_t shStrTabNameLength;
 
-    uint8_t *_textSegmentStart;
-    
+    uint8_t *_codeSegmentStart;
+
     uint32_t nbucket;
     uint32_t nchain;
     uint32_t *bucket_array;
     uint32_t *chain_array;
     uint32_t *hash_array;
     uint32_t *mod_array;
-
+    const char* _key;
+    void *_handle;
+    
 }; //class ELFSharedObjectGenerator
 
 } //namespace TR

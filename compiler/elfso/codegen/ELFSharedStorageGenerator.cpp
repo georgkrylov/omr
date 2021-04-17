@@ -38,62 +38,16 @@
 #include "env/AOTMethodHeader.hpp"
 
 
-ELF::ELFSharedObjectGenerator::ELFSharedObjectGenerator(TR::RawAllocator rawAllocator,
-                            uint8_t const * codeStart, size_t codeSize):
-                            OMR::ELFSharedObjectGeneratorConnector(rawAllocator, codeStart, codeSize)//,  OMR::AOTStorageInterfaceConnector(), ELFDataMap{}
-                            {
-                                initialize();
-                            }
-
  ELF::ELFSharedObjectGenerator::ELFSharedObjectGenerator(TR::RawAllocator rawAllocator):
-                            OMR::ELFSharedObjectGeneratorConnector(rawAllocator, 0, 0),  OMR::AOTStorageInterfaceConnector(), ELFDataMap(str_comparator)
-                            {
-                                numOfSections = 8;
-                                numOfProgramHeaders = 3;
-                                numOfDynamicEntries = 6;
-                                initialize();
-                            } 
-
-void
-ELF::ELFSharedObjectGenerator::initialize(void)
-{
-   // printf("\n In initialize\n");
-
-    ELFEHeader *hdr =
-    static_cast<ELFEHeader *>(_rawAllocator.allocate(sizeof(ELFEHeader),
-    std::nothrow));
-    _header = hdr;
-
-    initializeELFHeader();
-    
-    initializeELFHeaderForPlatform();
-
-}
+                            OMR::ELFSharedObjectGeneratorConnector(rawAllocator, 0, 0),  
+                            OMR::AOTStorageInterfaceConnector(),
+                            ELFDataMap(str_comparator)
+                            {} 
 
 void 
 ELF::ELFSharedObjectGenerator::writeCodeSegmentToFile(::FILE *fp)
 {
     fwrite(static_cast<const void *>(_codeSegmentStart), sizeof(uint8_t), _codeSize, fp);
-}
-
-ELF::ELFSharedObjectGenerator::ELFProgramHeader *
-ELF::ELFSharedObjectGenerator::initializeProgramHeader(uint32_t type, ELFOffset offset, ELFAddress vaddr, ELFAddress paddr, 
-                                                uint32_t filesz, uint32_t memsz, uint32_t flags, uint32_t align)
-{
-   ELFProgramHeader *phdr =
-    static_cast<ELFProgramHeader *>(_rawAllocator.allocate(sizeof(ELFProgramHeader),
-    std::nothrow)); 
-
-    phdr->p_type = type; //should be loaded in memory
-    phdr->p_offset = offset; //offset of program header from the first byte of file to be loaded
-    phdr->p_vaddr = vaddr; //(ELFAddress) _codeStart; //virtual address to load into
-    phdr->p_paddr = paddr; //(ELFAddress) _codeStart; //physical address to load into
-    phdr->p_filesz = filesz;//_codeSize; //in-file size
-    phdr->p_memsz = memsz;//_codeSize; //in-memory size
-    phdr->p_flags = flags; // should add PF_W if we get around to loading patchable code
-    phdr->p_align = align;
-    
-    return phdr;
 }
 
 void
@@ -127,20 +81,6 @@ ELF::ELFSharedObjectGenerator::buildProgramHeaders()
                                             0x8);
 }
 
-void
-ELF::ELFSharedObjectGenerator::initializeELFHeader(void)
-{
-    //printf("\n In initializeELFHeader\n");
-    _header->e_type = ET_DYN;           
-    _header->e_entry = (ELFAddress) _codeSegmentStart; //no associated entry point for shared object ELF files
-    _header->e_phoff = sizeof(ELFEHeader); //program header for shared object files
-    _header->e_shoff = sizeof(ELFEHeader) + ( sizeof(ELFProgramHeader) * numOfProgramHeaders ) + _codeSize; //start of the section header table in bytes from the first byte of the ELF file
-    _header->e_phentsize = sizeof(ELFProgramHeader); //program header size
-    _header->e_phnum = numOfProgramHeaders; //No of program headers
-    _header->e_shnum = numOfSections; //No of section headers
-    _header->e_shstrndx = 2; //index of section header string table
-    //printf("\n Out initializeELFHeader\n");
-}
 
 void
 ELF::ELFSharedObjectGenerator::initializeSectionNames(void)
@@ -176,7 +116,7 @@ ELF::ELFSharedObjectGenerator::initializeSectionOffsets(void)
     sectionOffsetMap[_AotCDSectionName] = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader) * numOfProgramHeaders);
     //printf("\n textSectionStartOffset %d \n ",textSectionStartOffset);
     
-    sectionOffsetMap[_shStrTabSectionName] = sizeof(ELFEHeader) + ( sizeof(ELFProgramHeader) *numOfProgramHeaders ) + _codeSize +   
+    sectionOffsetMap[_shStrTabSectionName] = sizeof(ELFEHeader) + ( sizeof(ELFProgramHeader) * numOfProgramHeaders ) + _codeSize +   
                                              (sizeof(ELFSectionHeader) * /* # shdr */ numOfSections);
     
     sectionOffsetMap[_dynSymSectionName]  =  sectionOffsetMap[_shStrTabSectionName] +
@@ -194,26 +134,6 @@ ELF::ELFSharedObjectGenerator::initializeSectionOffsets(void)
     sectionOffsetMap[_dynamicSectionName] = sectionOffsetMap[_dataSectionName] + _dataSize;  
 
 }
-
-ELF::ELFSharedObjectGenerator::ELFSectionHeader * 
-ELF::ELFSharedObjectGenerator::initializeSection(uint32_t shName, uint32_t shType, uint32_t shFlags, ELFAddress shAddress,
-                                                 ELFOffset shOffset,  uint32_t shSize, uint32_t shLink, uint32_t shInfo, uint32_t shAddralign, uint32_t shEntsize)
-{
-    ELFSectionHeader * shdr = static_cast<ELFSectionHeader *>(_rawAllocator.allocate(sizeof(ELFSectionHeader)));
-    
-    shdr->sh_name = shName;
-    shdr->sh_type = shType;
-    shdr->sh_flags = shFlags;//SHF_ALLOC | SHF_EXECINSTR;
-    shdr->sh_addr = shAddress;//shAddress;
-    shdr->sh_offset = shOffset;
-    shdr->sh_size = shSize;
-    shdr->sh_link = shLink;
-    shdr->sh_info = shInfo;
-    shdr->sh_addralign = shAddralign;
-    shdr->sh_entsize = shEntsize;
-    return shdr;               
-}
-
 
 void
 ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
@@ -308,15 +228,10 @@ ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
 }
 
 bool 
-ELF::ELFSharedObjectGenerator::emitAOTELF(const char * filename,
-                uint32_t numSymbols,
-                uint32_t totalELFSymbolNamesLength)
+ELF::ELFSharedObjectGenerator::emitELFSO(const char * filename)
 {
     //_symbols = symbols;
     //_relocations = relocations;
-    _numSymbols = numSymbols;
-    //_numRelocations = numRelocations;
-    _totalELFSymbolNamesLength = totalELFSymbolNamesLength;
     //TR::Compiler->aotAdapter->_methodNameToHeaderMap;
     
     //printf("\n In emitAOTELF\n");
@@ -337,14 +252,14 @@ ELF::ELFSharedObjectGenerator::emitAOTELF(const char * filename,
 
     buildSectionHeaders();
     //printf("\n Before emitELFFile\n");
-    bool val = emitAOTELFFile(filename);
+    bool val = emitELFFile(filename);
     //printf("\n Last\n");
     return val;
 }
 
 
 bool
-ELF::ELFSharedObjectGenerator::emitAOTELFFile(const char * filename)
+ELF::ELFSharedObjectGenerator::emitELFFile(const char * filename)
 {
     //printf("\n In emitAOTELFFile\n");
     ::FILE *elfFile = fopen(filename, "wb");
@@ -366,11 +281,6 @@ ELF::ELFSharedObjectGenerator::emitAOTELFFile(const char * filename)
 
     writeSectionHeaderToFile(elfFile, _AotCDSection);
 
-   // if (_relaSection)
-   // {
-   //     writeSectionHeaderToFile(elfFile, _relaSection);
-   // }
-
     writeSectionHeaderToFile(elfFile, _shStrTabSection);
 
     writeSectionHeaderToFile(elfFile, _dynSymSection);
@@ -386,11 +296,7 @@ ELF::ELFSharedObjectGenerator::emitAOTELFFile(const char * filename)
     writeSectionNameToFile(elfFile, _zeroSectionName, sizeof(_zeroSectionName));
 
     writeSectionNameToFile(elfFile, _AotCDSectionName, sizeof(_AotCDSectionName));
-    
-    //if (_relaSection)
-   // {
-   //     writeSectionNameToFile(elfFile, _relaSectionName, sizeof(_relaSectionName));
-  //  } 
+
     writeSectionNameToFile(elfFile, _shStrTabSectionName, sizeof(_shStrTabSectionName));
     
     writeSectionNameToFile(elfFile, _dynSymSectionName, sizeof(_dynSymSectionName));
@@ -411,25 +317,11 @@ ELF::ELFSharedObjectGenerator::emitAOTELFFile(const char * filename)
 
     writeDynamicSectionEntries(elfFile);
     
-    //writeELFSymbolsToFile(elfFile);
-   // if(_relaSection)
-   // {
-   //     writeRelaEntriesToFile(elfFile);
-   // }
-    //printf("\n After writeAOTELFSymbolsToFile\n");
     char str[] = "ELFEnd";
     fwrite(str , 1 , sizeof(str) , elfFile );
     fclose(elfFile);
-    //printf("\n Out emitAOTELFFile\n");
-    return true;
-}
 
-void 
-ELF::ELFSharedObjectGenerator::writeProgramHeaderToFile(::FILE *fp)
-{
-    fwrite(_programHeaderLoadRX, sizeof(uint8_t), sizeof(ELFProgramHeader), fp);
-    fwrite(_programHeaderLoadRW, sizeof(uint8_t), sizeof(ELFProgramHeader), fp);
-    fwrite(_programHeaderDynamic, sizeof(uint8_t), sizeof(ELFProgramHeader), fp);
+    return true;
 }
 
 void 
@@ -451,12 +343,6 @@ ELF::ELFSharedObjectGenerator::processAllSymbols(::FILE *fp)
     const uint8_t* rangeStart; //relocatable elf files need symbol offset from segment base
     rangeStart = 0;
 
-    
-    //values that are unchanged are being kept out of the while loop
-    //elfSym->st_other = ELF_ST_VISIBILITY(STV_DEFAULT);
-    //elfSym->st_info = ELF_ST_INFO(STB_GLOBAL,STT_FUNC);
-    /* this while loop re-uses the ELFSymbol and write
-       CodeCacheSymbol info into file */
     uint32_t symbolDefStart = sectionOffsetMap[_AotCDSectionName];
     TR::AOTMethodHeader* hdr;
 
@@ -469,13 +355,9 @@ ELF::ELFSharedObjectGenerator::processAllSymbols(::FILE *fp)
         //printf("\n hdr->self()->newCompiledCodeStart = [ %p ]", hdr->self()->newCompiledCodeStart);
         memcpy(names, methodName, strlen(methodName) + 1);
         unsignedInt st_name = names - ELFSymbolNames;
-       // elfSym->st_name = names - ELFSymbolNames;
-        //elfSym->st_shndx = hdr->self()->compiledCodeStart ? 1 : SHN_UNDEF;
-        //elfSym->st_value = hdr->self()->newCompiledCodeStart ? (ELFAddress)(hdr->self()->newCompiledCodeStart - rangeStart) : 0;
-        //elfSym->st_value = (ELFAddress) symbolDefStart;
+
         uint32_t AotCDBufferSize = hdr->self()->sizeOfSerializedVersion();
-       // elfSym->st_size = AotCDBufferSize;
-        //fwrite(elfSym, sizeof(uint8_t), sizeof(ELFSymbol), fp);
+  
         writeSymbolToFile(fp, 
                           elfSym,
                           st_name, 
@@ -512,19 +394,6 @@ ELF::ELFSharedObjectGenerator::processAllSymbols(::FILE *fp)
     //printf("\n Out writeAOTELFSymbolsToFile\n");
 }
 
-//ELFSymbol *elfSym can be alllocate and deallocate din the constructors/destructor
-void 
-ELF::ELFSharedObjectGenerator::writeSymbolToFile(::FILE *fp, ELFSymbol *elfSym, uint32_t st_name, unsigned char st_info, unsigned char st_other, ELFSection st_shndx, ELFAddress st_value, uint64_t st_size)
-{
-    elfSym->st_name = st_name;
-    elfSym->st_info = st_info;
-    elfSym->st_other = st_other;
-    elfSym->st_shndx = st_shndx;
-    elfSym->st_value = st_value;
-    elfSym->st_size = st_size;
-    fwrite(elfSym, sizeof(uint8_t), sizeof(ELFSymbol), fp);
-}
-
 void
 ELF::ELFSharedObjectGenerator::writeDynamicSectionEntries(::FILE *fp)
 {
@@ -546,38 +415,6 @@ ELF::ELFSharedObjectGenerator::writeDynamicSectionEntries(::FILE *fp)
    
     _rawAllocator.deallocate(dynEntry);
     //printf(" \n Out writeDynamicSectionEntries \n");
-}
-
-void
-ELF::ELFSharedObjectGenerator::writeDynamicEntryToFile(::FILE *fp, ELFDynamic * dynEntry, Elf64_Sxword tag, uint32_t value, uint64_t ptr, uint32_t flag)
-{
-    //printf(" \n In writeDynamicValueEntryToFile \n");
-    dynEntry->d_tag = tag;
-    if(flag == 1){
-        dynEntry->d_un.d_val = value; 
-        }
-    else{
-        dynEntry->d_un.d_ptr = ptr;
-        }
-    fwrite(dynEntry, sizeof(uint8_t), sizeof(ELFDynamic), fp);
-    //printf(" \n Out writeDynamicEntryToFile \n");
-}
-
-// Refer https://flapenguin.me/elf-dt-hash
-uint32_t 
-ELF::ELFSharedObjectGenerator::elfHashSysV(const char* symbolName)
-{
-  uint32_t h = 0, g = 0;
-  
-  while (*symbolName) 
-    {
-    h = (h << 4) + *symbolName++;
-    if((g = h & 0xf0000000))
-        h ^= g >> 24;
-    h &= ~g;
-    }
-
-    return h;
 }
 
 void 
@@ -650,41 +487,6 @@ ELF::ELFSharedObjectGenerator::writeHashSectionToFile(::FILE *fp)
     }
 }
 
-size_t 
-ELF::ELFSharedObjectGenerator::getNoOfBuckets(uint32_t numSymbols)
-{
-    static const size_t elfBuckets[] = {0, 1, 3, 17, 37, 67, 97, 131, 197, 263, 521, 1031, 2053, 4099, 8209, 16411, 32771};
-    size_t n = sizeof(elfBuckets) / sizeof(elfBuckets[0]);
-    for(uint32_t i = 0; i < n; i++)
-    {
-        if(elfBuckets[i] > numSymbols)
-        {
-            //printf("\n elfBuckets[i] = [%d]",elfBuckets[i]);
-            //printf("\n elfBuckets[i-1] = [%d]",elfBuckets[i-1]);
-            return elfBuckets[i-1];     
-        }
-    } 
-}
-
-void 
-ELF::ELFSharedObjectGenerator::initializeHashValues(uint32_t numSymbols)
-{
-    nbucket = (uint32_t)getNoOfBuckets(numSymbols + 2);
-    nchain = numSymbols + 2;
-    bucket_array = static_cast<uint32_t*>(_rawAllocator.allocate(sizeof(uint32_t) * nbucket));
-    chain_array = static_cast<uint32_t*>(_rawAllocator.allocate(sizeof(uint32_t) * nchain));
-    hash_array = static_cast<uint32_t*>(_rawAllocator.allocate(sizeof(uint32_t) * nchain));
-    mod_array = static_cast<uint32_t*>(_rawAllocator.allocate(sizeof(uint32_t) * nchain));
-    
-    for(uint32_t i = 0; i < nchain; i++) {
-        chain_array[i] = 0;
-        hash_array[i] = 0;
-        mod_array[i] = 0;
-        }
-    for(uint32_t i = 0; i < nbucket; i++) {
-        bucket_array[i] = 0;
-        }
-}
 
  TR::AOTStorageInterface* ELF::ELFSharedObjectGenerator::self() //suspicious behaviour .. not sure about correctness
    {
@@ -780,7 +582,6 @@ void ELF::ELFSharedObjectGenerator::consolidateBuffers(uint32_t methodCount, cha
     FILE *inFile = fopen(soFilename, "wb");
     fwrite(ptrStart, sizeof(uint8_t), total_BufferMethodNameLength.first, inFile);
     fclose(inFile); */
-
     storeEntries(filename, ptrStart, total_BufferMethodNameLength.first, total_BufferMethodNameLength.second, methodCount);   
     }
 
@@ -831,10 +632,10 @@ void
 ELF::ELFSharedObjectGenerator::storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount)
 {
       printf("\n In fileName , methodCount , totalMethodNameLength = [%s] [%u] [%u] \n",fileName, methodCount, totalMethodNameLength);
-      _codeSegmentStart = codeStart;
-      _codeSize = codeSize;
+      //_codeSegmentStart = codeStart;
+      setCodeSegmentDetails(codeStart, codeSize, methodCount, totalMethodNameLength );
       initialize();
-      emitAOTELF(fileName, methodCount, totalMethodNameLength);                                 
+      emitELFSO(fileName);                                 
 }
 
 void 

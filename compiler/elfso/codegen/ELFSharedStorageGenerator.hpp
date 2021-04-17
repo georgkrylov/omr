@@ -80,15 +80,12 @@ class OMR_EXTENSIBLE ELFSharedObjectGenerator : public OMR::ELFSharedObjectGener
 {
 
 public:
-    ELFSharedObjectGenerator(TR::RawAllocator rawAllocator,
-                            uint8_t const * codeStart, size_t codeSize);
 
     ELFSharedObjectGenerator(TR::RawAllocator rawAllocator);
 
     ~ELFSharedObjectGenerator() throw()
     {
     }
-
 
   typedef bool (*StrComparator)(const char *, const char*);
   typedef TR::typed_allocator<std::pair<const char * const, TR::AOTMethodHeader *>, TR::Region &> methodHeaderAllocator;
@@ -100,18 +97,15 @@ protected:
     /**
      * Initializes header for Shared Object ELF file
     */
-    virtual void initialize(void);
     
     /**
      * Initializes header struct members for Shared Object ELF
     */
-    virtual void initializeELFHeader(void);
-
+   
     /**
      * Initializes ELF Program Header, required for executable ELF
     */
-    virtual ELFProgramHeader * initializeProgramHeader(uint32_t type, ELFOffset offset, ELFAddress vaddr, ELFAddress paddr, 
-                                                uint32_t filesz, uint32_t memsz, uint32_t flags, uint32_t align);
+
     void writeCodeSegmentToFile(::FILE *fp);
 
     void buildProgramHeaders();
@@ -121,11 +115,7 @@ protected:
     virtual void initializeSectionOffsets(void);
 
     virtual void initializeSectionNames(void);
-
-    void writeProgramHeaderToFile(::FILE *fp);
-    
-    ELFSectionHeader * initializeSection(uint32_t shName, uint32_t shType, uint32_t shFlags, ELFAddress shAddress,
-                                                 ELFOffset shOffset,  uint32_t shSize, uint32_t shLink, uint32_t shInfo, uint32_t shAddralign, uint32_t shEntsize);
+  
 
 public:
 
@@ -142,54 +132,31 @@ public:
      * @return bool whether emitting ELF file succeeded
     */
 
-     bool emitAOTELF(const char * filename,
-               // TR::CodeCacheSymbol *symbols,
-                 uint32_t numSymbols,
-                uint32_t totalELFSymbolNamesLength);//,
+     bool emitELFSO(const char * filename);//,
                // TR::CodeCacheRelocationInfo *relocations,
                 //uint32_t numRelocations);
 
     void processAllSymbols(::FILE *fp);
 
-    void  writeSymbolToFile(::FILE *fp, ELFSymbol *elfSym, uint32_t st_name, unsigned char st_info, unsigned char st_other, ELFSection st_shndx, ELFAddress st_value, uint64_t st_size);
-
-    bool emitAOTELFFile(const char * filename);
+    bool emitELFFile(const char * filename);
 
     void writeDynamicSectionEntries(::FILE *fp);
 
-    void writeDynamicEntryToFile(::FILE *fp, ELFDynamic * dynEntry, Elf64_Sxword tag, uint32_t value, uint64_t ptr, uint32_t flag);
-
-    uint32_t elfHashSysV(const char* symbolName);
-
     void writeHashSectionToFile(::FILE *fp);
 
+    void dynamicLoading(const char*  methodName);
     //SystemVHashTable *hashTable;
-
-    void initializeHashValues(uint32_t numSymbols);
-
-    size_t getNoOfBuckets(uint32_t numSymbols);
 
     //using OMR::AOTStorageInterface::aotint;
 
     ELFSectionHeader *_AotCDSection;
     char              _AotCDSectionName[7];
     
-    uint32_t numOfSections;
-    uint32_t numOfProgramHeaders;
-    uint32_t numOfDynamicEntries;
-    uint32_t shStrTabNameLength;
+    //uint8_t *_codeSegmentStart;
 
-    uint8_t *_codeSegmentStart;
-
-    uint32_t nbucket;
-    uint32_t nchain;
-    uint32_t *bucket_array;
-    uint32_t *chain_array;
-    uint32_t *hash_array;
-    uint32_t *mod_array;
     const char* _key;
     void *_handle;
-
+    
     TR::AOTStorageInterface* self();
 
    uint8_t* loadEntry(const char* key);
@@ -198,14 +165,15 @@ public:
 
    void consolidateCompiledCode(uint32_t methodCount, char * filename);
    void consolidateBuffers(uint32_t methodCount, char * filename);
+
    std::pair<uint32_t, uint32_t> calculateAggregateSize();
    std::pair<uint32_t, uint32_t> calculateAggregateBufferSize();
-   std::map<const char *,uint32_t> sectionOffsetMap;
+   
    //void consolidateCompiledCode(uint8_t *ptrStart);
 
    void storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount);
 
-   void dynamicLoading(const char*  methodName);
+   
 
 
 }; //class ELFSharedObjectGenerator
