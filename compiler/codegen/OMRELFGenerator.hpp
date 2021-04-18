@@ -577,8 +577,9 @@ public:
 
     uint32_t elfHashSysV(const char* symbolName);
 
-    void writeHashSectionToFile(::FILE *fp);
+    void calculateHashValues();
 
+    void writeSysVHashTable(::FILE *fp);    //SystemVHashTable *hashTable;
     //SystemVHashTable *hashTable;
 
     void initializeHashValues(uint32_t numSymbols);

@@ -1045,7 +1045,9 @@ OMR::ELFSharedObjectGenerator::emitELFFile(const char * filename)
     
     processAllSymbols(elfFile);
 
-    writeHashSectionToFile(elfFile);
+    calculateHashValues();
+
+    writeSysVHashTable(elfFile);
 
     writeDataSegmentToFile(elfFile);
 
@@ -1179,9 +1181,64 @@ OMR::ELFSharedObjectGenerator::elfHashSysV(const char* symbolName)
 }
 
 void 
-OMR::ELFSharedObjectGenerator::writeHashSectionToFile(::FILE *fp)
+OMR::ELFSharedObjectGenerator::calculateHashValues()
 {
     TR_UNIMPLEMENTED();
+}
+
+void 
+OMR::ELFSharedObjectGenerator::writeSysVHashTable(::FILE *fp)
+{
+    for(uint32_t i = 0; i < nbucket; i++) 
+        {
+        uint32_t flag = 0, temp = 0;
+        for(uint32_t j = 1; j < nchain; j++) 
+            {
+            if(i == mod_array[j])
+            {
+                if(flag == 0)
+                    {
+                    bucket_array[i] = j;
+                    flag = 1;
+                    temp = j;
+                    }
+                else
+                    {
+                    chain_array[temp] = j;
+                    temp = j;
+                    }
+                    //printf("\n bucket_array[%d] = %u",i,j);
+                   // continue;
+                }   
+            }
+        }
+
+   /*  for(int i = 0; i < nchain; i++) 
+        {
+        printf("\n hash_array[%d] = %u mod_array[%d] = %u chain_array[%u] = %u  ",i,hash_array[i],i,mod_array[i],i,chain_array[i]);
+        }
+    for(int i = 0; i < nbucket; i++) 
+        {
+        printf("\n bucket_array[%d] = %u",i,bucket_array[i]);
+       } */
+    
+    uint32_t written = 0;
+    written = fwrite(&nbucket,sizeof(uint32_t),1, fp);
+    if (written == 0) {
+        printf("Error during writing to file 1!");
+    }
+    written = fwrite(&nchain,sizeof(uint32_t),1, fp);
+    if (written == 0) {
+        printf("Error during writing to file 2!");
+    }
+    written = fwrite(bucket_array, sizeof(uint32_t), nbucket, fp);
+    if (written == 0) {
+        printf("Error during writing to file 3!");
+    }
+    written = fwrite(chain_array, sizeof(uint32_t), nchain, fp);
+    if (written == 0) {
+        printf("Error during writing to file 4!");
+    }
 }
 
 size_t 

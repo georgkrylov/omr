@@ -140,10 +140,8 @@ public:
 
     bool emitELFFile(const char * filename);
 
-    void writeDynamicSectionEntries(::FILE *fp);
-
-    void writeHashSectionToFile(::FILE *fp);
-
+    void calculateHashValues();
+    
     void dynamicLoading(const char*  methodName);
     //SystemVHashTable *hashTable;
 

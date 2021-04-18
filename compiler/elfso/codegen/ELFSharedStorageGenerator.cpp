@@ -311,7 +311,9 @@ ELF::ELFSharedObjectGenerator::emitELFFile(const char * filename)
     
     processAllSymbols(elfFile);
 
-    writeHashSectionToFile(elfFile);
+    calculateHashValues();
+
+    writeSysVHashTable(elfFile);
 
     writeDataSegmentToFile(elfFile);
 
@@ -394,31 +396,8 @@ ELF::ELFSharedObjectGenerator::processAllSymbols(::FILE *fp)
     //printf("\n Out writeAOTELFSymbolsToFile\n");
 }
 
-void
-ELF::ELFSharedObjectGenerator::writeDynamicSectionEntries(::FILE *fp)
-{
-    //printf(" \n In writeDynamicSectionEntries \n");
-    ELFDynamic * dynEntry = static_cast<ELFDynamic*>(_rawAllocator.allocate(sizeof(ELFDynamic)));
-    //.dynsym Entry
-    writeDynamicEntryToFile(fp, dynEntry, DT_SYMTAB, 0, sectionOffsetMap[_dynSymSectionName], 0);
-    //.dynstr Entry
-    writeDynamicEntryToFile(fp, dynEntry, DT_STRTAB, 0, sectionOffsetMap[_dynStrSectionName], 0);
-    //.hash Entry
-    writeDynamicEntryToFile(fp, dynEntry, DT_HASH, 0, sectionOffsetMap[_hashSectionName], 0);
-
-    writeDynamicEntryToFile(fp, dynEntry, DT_STRSZ, _totalELFSymbolNamesLength, 0, 1);
-
-    writeDynamicEntryToFile(fp, dynEntry, DT_SYMENT, sizeof(ELFSymbol) * (_numSymbols+2), 0, 1);
-    //NULL Entry
-    writeDynamicEntryToFile(fp, dynEntry, DT_NULL, 0, 0, 0);
-    //.rela.text Entry
-   
-    _rawAllocator.deallocate(dynEntry);
-    //printf(" \n Out writeDynamicSectionEntries \n");
-}
-
 void 
-ELF::ELFSharedObjectGenerator::writeHashSectionToFile(::FILE *fp)
+ELF::ELFSharedObjectGenerator::calculateHashValues()
 {
     uint32_t hash_index = 1;
 
@@ -434,59 +413,7 @@ ELF::ELFSharedObjectGenerator::writeHashSectionToFile(::FILE *fp)
     hash_array[hash_index] = elfHashSysV(dynamicSymbolName);
     mod_array[hash_index] = hash_array[hash_index] % nbucket;
     hash_index++;
-
-    for(uint32_t i = 0; i < nbucket; i++) 
-        {
-        uint32_t flag = 0, temp = 0;
-        for(uint32_t j = 1; j < nchain; j++) 
-            {
-            if(i == mod_array[j])
-            {
-                if(flag == 0)
-                    {
-                    bucket_array[i] = j;
-                    flag = 1;
-                    temp = j;
-                    }
-                else
-                    {
-                    chain_array[temp] = j;
-                    temp = j;
-                    }
-                    //printf("\n bucket_array[%d] = %u",i,j);
-                   // continue;
-                }   
-            }
-        }
-
-   /*  for(int i = 0; i < nchain; i++) 
-        {
-        printf("\n hash_array[%d] = %u mod_array[%d] = %u chain_array[%u] = %u  ",i,hash_array[i],i,mod_array[i],i,chain_array[i]);
-        }
-    for(int i = 0; i < nbucket; i++) 
-        {
-        printf("\n bucket_array[%d] = %u",i,bucket_array[i]);
-       } */
-    
-    uint32_t written = 0;
-    written = fwrite(&nbucket,sizeof(uint32_t),1, fp);
-    if (written == 0) {
-        printf("Error during writing to file 1!");
-    }
-    written = fwrite(&nchain,sizeof(uint32_t),1, fp);
-    if (written == 0) {
-        printf("Error during writing to file 2!");
-    }
-    written = fwrite(bucket_array, sizeof(uint32_t), nbucket, fp);
-    if (written == 0) {
-        printf("Error during writing to file 3!");
-    }
-    written = fwrite(chain_array, sizeof(uint32_t), nchain, fp);
-    if (written == 0) {
-        printf("Error during writing to file 4!");
-    }
 }
-
 
  TR::AOTStorageInterface* ELF::ELFSharedObjectGenerator::self() //suspicious behaviour .. not sure about correctness
    {
