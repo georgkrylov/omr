@@ -44,11 +44,6 @@
                             ELFDataMap(str_comparator)
                             {} 
 
-void 
-ELF::ELFSharedObjectGenerator::writeCodeSegmentToFile(::FILE *fp)
-{
-    fwrite(static_cast<const void *>(_codeSegmentStart), sizeof(uint8_t), _codeSize, fp);
-}
 
 void
 ELF::ELFSharedObjectGenerator::buildProgramHeaders()
@@ -112,7 +107,6 @@ ELF::ELFSharedObjectGenerator::initializeSectionNames(void)
 void
 ELF::ELFSharedObjectGenerator::initializeSectionOffsets(void)
 { 
-    //printf("\n In initializeSectionOffsets\n");
     sectionOffsetMap[_AotCDSectionName] = sizeof(ELFEHeader) + (sizeof(ELFProgramHeader) * numOfProgramHeaders);
     //printf("\n textSectionStartOffset %d \n ",textSectionStartOffset);
     
@@ -230,30 +224,22 @@ ELF::ELFSharedObjectGenerator::buildSectionHeaders(void)
 bool 
 ELF::ELFSharedObjectGenerator::emitELFSO(const char * filename)
 {
-    //_symbols = symbols;
-    //_relocations = relocations;
-    //TR::Compiler->aotAdapter->_methodNameToHeaderMap;
-    
-    //printf("\n In emitAOTELF\n");
 
     char temp[] = "[Dummy data in data segment]";
     _dataSize = sizeof(temp);
-    //printf("\n Size of data = %d", _dataSize);
 
     initializeHashValues(_numSymbols);
-    //printf("\n After initializeHashValues\n");
     
     initializeSectionNames();
-    //printf("\n After initializeSectionNames\n");
     
     initializeSectionOffsets();
 
     buildProgramHeaders();
 
     buildSectionHeaders();
-    //printf("\n Before emitELFFile\n");
+
     bool val = emitELFFile(filename);
-    //printf("\n Last\n");
+
     return val;
 }
 
@@ -261,7 +247,6 @@ ELF::ELFSharedObjectGenerator::emitELFSO(const char * filename)
 bool
 ELF::ELFSharedObjectGenerator::emitELFFile(const char * filename)
 {
-    //printf("\n In emitAOTELFFile\n");
     ::FILE *elfFile = fopen(filename, "wb");
 
     if (NULL == elfFile)
@@ -393,7 +378,6 @@ ELF::ELFSharedObjectGenerator::processAllSymbols(::FILE *fp)
     fwrite(ELFSymbolNames, sizeof(uint8_t), _totalELFSymbolNamesLength, fp);
 
     _rawAllocator.deallocate(elfSym);
-    //printf("\n Out writeAOTELFSymbolsToFile\n");
 }
 
 void 
@@ -415,6 +399,10 @@ ELF::ELFSharedObjectGenerator::calculateHashValues()
     hash_index++;
 }
 
+
+
+//========================================================================================================================
+
  TR::AOTStorageInterface* ELF::ELFSharedObjectGenerator::self() //suspicious behaviour .. not sure about correctness
    {
    return reinterpret_cast<TR::AOTStorageInterface*> (this);
@@ -423,13 +411,6 @@ ELF::ELFSharedObjectGenerator::calculateHashValues()
 void 
 ELF::ELFSharedObjectGenerator::storeEntry(const char* key, TR::AOTMethodHeader* hdr)
    {
-     // printf("\n In ELF storeEntry  ");
-     // printf("\n CompiledCodeStart = [ %p ]",hdr->self()->compiledCodeStart);
-    //  printf("\n CompiledCodeSize = [ %d ]",hdr->self()->compiledCodeSize);
-    //  printf("\n RelocationsDataStart = [ %p ]",hdr->self()->relocationsStart);
-    //  printf("\n RelocationsDataSize = [ %d ]",hdr->self()->relocationsSize);
-      //printf("\n Method Name = %s\n", key);
-      //_key = key;
       ELFDataMap[key] = hdr;
    }
 
@@ -441,18 +422,8 @@ ELF::ELFSharedObjectGenerator::consolidateCompiledCode(uint32_t methodCount, cha
     uint32_t totalMethodNameLength = 0;
     uint8_t *ptrStart, *ptrEnd; 
     std::pair<uint32_t, uint32_t> total_CodeSizeMethodNameLength;
-    
-   /* for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
-        {
-         const char *methodName;
-         methodName = it->first;
-         printf ("\n  methodName = %s\n", methodName);
-        } */
    
     total_CodeSizeMethodNameLength = calculateAggregateSize();
-
-    //printf("\n Total compiled code size = [ %d ]\n", total_CodeSizeMethodNameLength.first);
-   // printf("\n Total totalMethodNameLength = [ %d ]\n", total_CodeSizeMethodNameLength.second);
 
     uint8_t* compiledCodeBuffer = (uint8_t*) malloc (total_CodeSizeMethodNameLength.first);
     ptrStart = ptrEnd = compiledCodeBuffer;
@@ -488,8 +459,6 @@ void ELF::ELFSharedObjectGenerator::consolidateBuffers(uint32_t methodCount, cha
     
     total_BufferMethodNameLength = calculateAggregateBufferSize();
 
-    //printf("\n Total Buffer size = [ %d ]\n", total_BufferMethodNameLength.first);
-    //printf("\n Total totalMethodNameLength = [ %d ]\n", total_BufferMethodNameLength.second);
     uint8_t* compiledCodeBuffer = (uint8_t*) malloc (total_BufferMethodNameLength.first);
     ptrStart = ptrEnd = compiledCodeBuffer;
 
@@ -500,22 +469,13 @@ void ELF::ELFSharedObjectGenerator::consolidateBuffers(uint32_t methodCount, cha
         ptrEnd += hdr->sizeOfSerializedVersion();
         
         }
-    //printf("\n Consolidation done!\n");
-    /* char *inp = "_input.txt";
-    char *soFilename = (char *) malloc (1 + strlen(filename) + strlen(inp));   
-    strcpy(soFilename, filename);
-    strcat(soFilename, inp); 
 
-    FILE *inFile = fopen(soFilename, "wb");
-    fwrite(ptrStart, sizeof(uint8_t), total_BufferMethodNameLength.first, inFile);
-    fclose(inFile); */
     storeEntries(filename, ptrStart, total_BufferMethodNameLength.first, total_BufferMethodNameLength.second, methodCount);   
     }
 
 std::pair<uint32_t, uint32_t> 
 ELF::ELFSharedObjectGenerator::calculateAggregateSize()
     {
-   // printf("\n calculateTotalCompiledCodeSize");
     const char * methodName;
     uint32_t totalMethodNameLength = 0;
     TR::AOTMethodHeader* hdr;
@@ -536,7 +496,6 @@ ELF::ELFSharedObjectGenerator::calculateAggregateSize()
 std::pair<uint32_t, uint32_t> 
 ELF::ELFSharedObjectGenerator::calculateAggregateBufferSize()
     {
-   // printf("\n calculateTotalCompiledCodeSize");
     const char * methodName;
     uint32_t totalMethodNameLength = 0;
     TR::AOTMethodHeader* hdr;
@@ -559,7 +518,6 @@ void
 ELF::ELFSharedObjectGenerator::storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount)
 {
       printf("\n In fileName , methodCount , totalMethodNameLength = [%s] [%u] [%u] \n",fileName, methodCount, totalMethodNameLength);
-      //_codeSegmentStart = codeStart;
       setCodeSegmentDetails(codeStart, codeSize, methodCount, totalMethodNameLength );
       initialize();
       emitELFSO(fileName);                                 
@@ -579,11 +537,9 @@ ELF::ELFSharedObjectGenerator::dynamicLoading(const char*  fileName)
 uint8_t* 
 ELF::ELFSharedObjectGenerator::loadEntry(const char*  key)
 {
-    //printf("\nIn dynamicLoading loadEntry\n");
     char *error;
     if(_handle == NULL)
     {
-        //printf("\n return null\n");
         return nullptr;
     }
     uint8_t* addr = (uint8_t*) dlsym(_handle, key);

@@ -47,19 +47,13 @@ void ELF::AOTAdapter::prepareAndEmit(uint32_t methodCount, char * filename)
     _storage->self()->consolidateBuffers(methodCount, filename);
 }
 
-/*   void* ELF::AOTAdapter::getMethodCode(const char *methodName){
-      printf("\n HELLO IN getMethodCode");
-      return NULL;
-  } */
 
 void ELF::AOTAdapter::storeAOTCodeAndData(uint32_t methodCount, char * filename)
 {
-    //printf("\n In ELFAdapter \n");
     self()->prepareAndEmit(methodCount, filename);
 }
 
 void ELF::AOTAdapter::loadFile(const char *filename)
     {
-    //printf("In ELF loadFile");
     _storage->dynamicLoading(filename);
     }

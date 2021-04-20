@@ -28,14 +28,12 @@
 
 #ifndef ELF_SHOGENERATOR_CONNECTOR
 #define ELF_SHOGENERATOR_CONNECTOR
-//namespace OMR { namespace ELF {class ELFSharedObjectGenerator; } }
-//namespace OMR { typedef OMR::ELF::ELFSharedObjectGenerator ELFSharedObjectGeneratorConnector; }
+
 namespace ELF { class ELFSharedObjectGenerator;  }
 namespace ELF { typedef ELFSharedObjectGenerator ELFSharedObjectGeneratorConnector; }
 namespace ELF { typedef ELFSharedObjectGenerator AOTStorageInterfaceConnector; }
 
-//namespace ELF { class AOTStorageInterface;  }
-//namespace ELF { typedef AOTStorageInterface AOTStorageInterfaceConnector; }
+
 #else
    #error ELF::ELFGenerator expected to be a primary connector, but another connector is already defined
 
@@ -61,8 +59,6 @@ namespace ELF { typedef ELFSharedObjectGenerator AOTStorageInterfaceConnector; }
 #include "env/OMRAOTMethodHeader.hpp"
 
 
-
-
 namespace TR {class ELFGenerator; 
               class ELFSharedObjectGenerator; 
               class CodeCacheManager; 
@@ -70,11 +66,10 @@ namespace TR {class ELFGenerator;
               class AOTStorageInterface; 
               }
 
+
 namespace ELF{
 
-//namespace ELF{
 class ELFGenerator;
-//class AOTStorageInterface;
 
 class OMR_EXTENSIBLE ELFSharedObjectGenerator : public OMR::ELFSharedObjectGeneratorConnector, public OMR::AOTStorageInterfaceConnector
 {
@@ -94,20 +89,6 @@ public:
 
 protected:
 
-    /**
-     * Initializes header for Shared Object ELF file
-    */
-    
-    /**
-     * Initializes header struct members for Shared Object ELF
-    */
-   
-    /**
-     * Initializes ELF Program Header, required for executable ELF
-    */
-
-    void writeCodeSegmentToFile(::FILE *fp);
-
     void buildProgramHeaders();
 
     virtual void buildSectionHeaders(void);
@@ -119,22 +100,7 @@ protected:
 
 public:
 
-    /**
-     * This function is called when it is time to write symbols to file.
-     * This function calls helper functions that initializes section headers and
-     * writes to file.
-     * @param[in] filename the name of the file to write to
-     * @param[in] symbols the TR::CodeCacheSymbol*
-     * @param[in] numSymbols the number of symbols not including UNDEF
-     * @param[in] totalELFSymbolNamesLength the sum of symbol name lengths + 1 for UNDEF
-     * @param[in] relocations the TR::CodeCacheRelocationInfo
-     * @param[in] numRelocations the total number of relocations
-     * @return bool whether emitting ELF file succeeded
-    */
-
-     bool emitELFSO(const char * filename);//,
-               // TR::CodeCacheRelocationInfo *relocations,
-                //uint32_t numRelocations);
+     bool emitELFSO(const char * filename);
 
     void processAllSymbols(::FILE *fp);
 
@@ -143,14 +109,10 @@ public:
     void calculateHashValues();
     
     void dynamicLoading(const char*  methodName);
-    //SystemVHashTable *hashTable;
-
-    //using OMR::AOTStorageInterface::aotint;
 
     ELFSectionHeader *_AotCDSection;
     char              _AotCDSectionName[7];
     
-    //uint8_t *_codeSegmentStart;
 
     const char* _key;
     void *_handle;
@@ -161,18 +123,16 @@ public:
    
    void storeEntry(const char* key, TR::AOTMethodHeader* hdr);
 
+   void storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount);
+
    void consolidateCompiledCode(uint32_t methodCount, char * filename);
+   
    void consolidateBuffers(uint32_t methodCount, char * filename);
 
    std::pair<uint32_t, uint32_t> calculateAggregateSize();
+
    std::pair<uint32_t, uint32_t> calculateAggregateBufferSize();
    
-   //void consolidateCompiledCode(uint8_t *ptrStart);
-
-   void storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount);
-
-   
-
 
 }; //class ELFSharedObjectGenerator
 

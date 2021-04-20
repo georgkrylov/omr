@@ -708,7 +708,7 @@ OMR::ELFSharedObjectGenerator::initialize(void)
 void 
 OMR::ELFSharedObjectGenerator::writeCodeSegmentToFile(::FILE *fp)
 {
-    fwrite(static_cast<const void *>(_codeStart), sizeof(uint8_t), _codeSize, fp);
+    fwrite(static_cast<const void *>(_codeSegmentStart), sizeof(uint8_t), _codeSize, fp);
 }
 
 OMR::ELFSharedObjectGenerator::ELFProgramHeader *
