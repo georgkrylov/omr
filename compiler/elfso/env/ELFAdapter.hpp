@@ -73,12 +73,12 @@ public:
     */
    TR::AOTAdapter* self();
 
-   void prepareAndEmit(uint32_t methodCount, char * filename);
-   void storeAOTCodeAndData(uint32_t methodCount, char * filename);
+   void prepareAndEmit(char * filename);
+   void storeAOTCodeAndData(char * filename);
    //void *getMethodCode(const char *methodName);
    void loadFile(const char *filename);
 
-
+   void registerAOTMethodHeader(const char *methodName, TR::AOTMethodHeader* hdr);
 private:
   
    /**

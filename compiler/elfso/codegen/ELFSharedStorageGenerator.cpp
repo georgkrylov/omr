@@ -449,7 +449,7 @@ ELF::ELFSharedObjectGenerator::consolidateCompiledCode(uint32_t methodCount, cha
     storeEntries(filename, ptrStart, total_CodeSizeMethodNameLength.first, total_CodeSizeMethodNameLength.second, methodCount);   
     }
 
-void ELF::ELFSharedObjectGenerator::consolidateBuffers(uint32_t methodCount, char * filename)
+void ELF::ELFSharedObjectGenerator::consolidateBuffers(char * filename)
     {
     TR::AOTMethodHeader* hdr;
     TR::AOTStorageInterface* interface;
@@ -470,7 +470,7 @@ void ELF::ELFSharedObjectGenerator::consolidateBuffers(uint32_t methodCount, cha
         
         }
 
-    storeEntries(filename, ptrStart, total_BufferMethodNameLength.first, total_BufferMethodNameLength.second, methodCount);   
+    storeEntries(filename, ptrStart, total_BufferMethodNameLength.first, total_BufferMethodNameLength.second, ELFDataMap.size());   
     }
 
 std::pair<uint32_t, uint32_t> 
@@ -501,6 +501,11 @@ ELF::ELFSharedObjectGenerator::calculateAggregateBufferSize()
     TR::AOTMethodHeader* hdr;
     uint32_t totalBufferSize = 0;
 
+/*     for( NameToHeaderMap::iterator it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
+        {
+        methodName = it->first;
+        printf("\n methodName = %s",methodName);
+        } */
     for( NameToHeaderMap::iterator it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
         {
         methodName = it->first;
@@ -517,7 +522,7 @@ ELF::ELFSharedObjectGenerator::calculateAggregateBufferSize()
 void 
 ELF::ELFSharedObjectGenerator::storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount)
 {
-      //printf("\n In fileName , methodCount , totalMethodNameLength = [%s] [%u] [%u] \n",fileName, methodCount, totalMethodNameLength);
+      printf("\n In fileName , methodCount , totalMethodNameLength = [%s] [%u] [%u] \n",fileName, methodCount, totalMethodNameLength);
       setCodeSegmentDetails(codeStart, codeSize, methodCount, totalMethodNameLength );
       initialize();
       emitELFSO(fileName);                                 

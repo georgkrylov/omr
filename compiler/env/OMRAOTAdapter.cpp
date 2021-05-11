@@ -62,7 +62,7 @@ void OMR::AOTAdapter::storeAOTMethodAndDataInTheCache(const char* methodName)
     }
 
 
-void OMR::AOTAdapter::storeAOTCodeAndData(uint32_t methodCount, char * filename)
+void OMR::AOTAdapter::storeAOTCodeAndData(char * filename)
 {
     //printf("\n In OMRAdapter \n");
 }

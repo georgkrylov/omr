@@ -42,18 +42,25 @@ ELF::AOTAdapter::self()
     return static_cast<TR::AOTAdapter *>(this);
     }
 
-void ELF::AOTAdapter::prepareAndEmit(uint32_t methodCount, char * filename)
+void ELF::AOTAdapter::prepareAndEmit(char * filename)
 {
-    _storage->self()->consolidateBuffers(methodCount, filename);
+    _storage->self()->consolidateBuffers(filename);
 }
 
 
-void ELF::AOTAdapter::storeAOTCodeAndData(uint32_t methodCount, char * filename)
+void ELF::AOTAdapter::storeAOTCodeAndData(char * filename)
 {
-    self()->prepareAndEmit(methodCount, filename);
+    self()->prepareAndEmit(filename);
 }
 
 void ELF::AOTAdapter::loadFile(const char *filename)
     {
     _storage->dynamicLoading(filename);
     }
+
+void ELF::AOTAdapter::registerAOTMethodHeader(const char*  methodName,TR::AOTMethodHeader* header)
+    {
+    _methodNameToHeaderMap[methodName]=header;
+    _storage->storeEntry(methodName, header);
+    }
+    

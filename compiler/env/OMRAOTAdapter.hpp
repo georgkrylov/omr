@@ -170,7 +170,7 @@ public:
     * @brief std::map requires an implementation of comparators
     * for types that are not parts of the standard c++ library
     */
-   void storeAOTCodeAndData(uint32_t methodCount, char * filename);
+   void storeAOTCodeAndData(char * filename);
 //protected:
 
    typedef bool (*StrComparator)(const char *, const char*);

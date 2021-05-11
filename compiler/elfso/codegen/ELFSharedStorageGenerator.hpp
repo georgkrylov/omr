@@ -127,7 +127,7 @@ public:
 
    void consolidateCompiledCode(uint32_t methodCount, char * filename);
    
-   void consolidateBuffers(uint32_t methodCount, char * filename);
+   void consolidateBuffers(char * filename);
 
    std::pair<uint32_t, uint32_t> calculateAggregateSize();
 
