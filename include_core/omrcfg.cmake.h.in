@@ -250,4 +250,12 @@
  */
 #cmakedefine OMR_THR_MCS_LOCKS
 
+/**
+ * This flag enables the Generation of ELF Shared objects for storing AOT Code and 
+ * Data.
+ */
+//#cmakedefine OMR_ELF_SHARED_OBJECT
+
 #endif /* !defined(OMRCFG_H_) */
+
+
