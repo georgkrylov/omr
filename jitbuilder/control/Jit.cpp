@@ -127,11 +127,6 @@ bool initializeAOT(TR::CodeCacheManager* codeCacheManager) {
    return true;
 }
 
-/* bool initializeAOTELF(TR::CodeCacheManager* codeCacheManager) {  
-   ELFAOTAdapter = new (PERSISTENT_NEW) TR::AOTAdapter();
-   //AOTAdapter->initializeAOTClassesELF(codeCacheManager);
-   return true;
-} */
 
 void *getCodeEntry(const char *methodName){
   return  AOTLoadStoreDriver->getMethodCode(methodName);
@@ -268,7 +263,7 @@ internal_storeCodeEntry(char* methodName)
    }
 
 void 
-internal_storeCodeEntries(uint32_t methodCount, char * filename)
+internal_storeCodeEntries(char * filename)
    {
       TR::Compiler->aotLoadStoreDriver->storeAOTCodeAndData(filename);
       //TR::Compiler->aotLoadStoreDriver->prepareAndEmit(methodCount, filename);
