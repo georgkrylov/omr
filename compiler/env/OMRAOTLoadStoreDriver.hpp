@@ -79,12 +79,14 @@ public:
    /**
     * @brief a method that is checking whether there is a registered AOTMethodHeader
     * with matching name. If such method is registered, it calls the
-    * storeAOTMethodAndDataInTheStorage and passes the recently-retrieved AOTMethodHeader as an argument.
+    * storeAOTMethodAndDataInTheCache and passes the recently-retrieved AOTMethodHeader as an argument.
     *
     * @param methodName
     */
    void storeHeaderForCompiledMethod(const char *methodName);
 
+
+   void loadFile(const char *filename);
    /**
     * @brief Register the method (or a data item )loaded to a runtime environment from another source—for example,
     * from an external ELF file using dlopen() routine. This method would register it with a
@@ -162,6 +164,12 @@ public:
     * @param hdr
     */
    void registerAOTMethodHeader(const char *methodName, TR::AOTMethodHeader* hdr);
+
+   /**
+    * @brief std::map requires an implementation of comparators
+    * for types that are not parts of the standard c++ library
+    */
+   void storeAOTCodeAndData(char * filename);
 protected:
    /**
     * @brief The self() method, required by the extensible classes hierarchy
@@ -171,7 +179,30 @@ protected:
    TR::AOTLoadStoreDriver* self();
 
    /**
-    * @brief The storeAOTMethodAndDataInTheStorage accepts a method name and performs a
+    * @brief A pointer to the object that is used as a storage
+    *
+    */
+   TR::AOTStorage *_storage;
+
+   /**
+    * @brief Pointer to relocationRuntime that applies relocations
+    *
+    */
+   TR::RelocationRuntime *_reloRuntime;
+
+   typedef bool (*StrComparator)(const char *, const char*);
+   /**
+    * @brief The map of consisting of AOTMethod headers, keyed by string variables.
+    * This map effectively represents a 'symbol table' for making the runtime environment
+    * aware and able to access persisted information.  A subject to be replaced with
+    * SymbolValidationManager
+    */
+   typedef std::map<const char *, TR::AOTMethodHeader*,StrComparator> NameToHeaderMap;
+   NameToHeaderMap         _methodNameToHeaderMap;
+
+
+   /**
+    * @brief The storeAOTMethodAndDataInTheCache accepts a method name and performs a
     * lookup of an AOTMethodHeader in the map. Later, the AOTMethodHeader is serialized
     * and is sent to the cache.
     *
@@ -179,6 +210,8 @@ protected:
     */
    void storeAOTMethodAndDataInTheStorage(const char *methodName);
 
+   std::pair<uint32_t, uint32_t> calculateAggregateSize();
+   void consolidateCompiledCode(uint8_t *ptrStart);
    /**
     * @brief The loadAOTMethodAndDataFromTheStorage performs a call to a Storage Object for
     * loading an entry keyed by method name. If there is a cache entry retrieved from the cache,
@@ -195,37 +228,11 @@ protected:
 
 
    /**
-    * @brief A pointer to the object that is used as a storage
-    *
-    */
-   TR::AOTStorage *_storage;
-
-   /**
-    * @brief Pointer to relocationRuntime that applies relocations
-    *
-    */
-   TR::RelocationRuntime *_reloRuntime;
-
-   /**
     * @brief A pointer to the CodeCache manager—this class manages memory that contains
     * executable code, which is necessary if the AOT module is used to load code
     */
    TR::CodeCacheManager *_codeCacheManager;
 
-   /**
-    * @brief std::map requires an implementation of comparators
-    * for types that are not parts of the standard c++ library
-    */
-   typedef bool (*StrComparator)(const char *, const char*);
-
-   /**
-    * @brief The map of consisting of AOTMethod headers, keyed by string variables.
-    * This map effectively represents a 'symbol table' for making the runtime environment
-    * aware and able to access persisted information.  A subject to be replaced with
-    * SymbolValidationManager
-    */
-   typedef std::map<const char *, TR::AOTMethodHeader*,StrComparator> NameToHeaderMap;
-   NameToHeaderMap         _methodNameToHeaderMap;
 
    };
 }
