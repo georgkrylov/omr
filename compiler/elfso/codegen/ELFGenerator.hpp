@@ -1,9 +1,9 @@
 /*******************************************************************************
- * Copyright IBM Corp. and others 2018
+ * Copyright (c) 2018, 2019 IBM Corp. and others
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
- * distribution and is available at https://www.eclipse.org/legal/epl-2.0/
+ * distribution and is available at http://eclipse.org/legal/epl-2.0
  * or the Apache License, Version 2.0 which accompanies this distribution
  * and is available at https://www.apache.org/licenses/LICENSE-2.0.
  *
@@ -14,26 +14,22 @@
  * License, version 2 with the OpenJDK Assembly Exception [2].
  *
  * [1] https://www.gnu.org/software/classpath/license.html
- * [2] https://openjdk.org/legal/assembly-exception.html
+ * [2] http://openjdk.java.net/legal/assembly-exception.html
  *
- * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR GPL-2.0-only WITH OpenJDK-assembly-exception-1.0
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0 WITH Classpath-exception-2.0 OR LicenseRef-GPL-2.0 WITH Assembly-exception
  *******************************************************************************/
 
-#ifndef TR_ELFGENERATOR_INCL
-#define TR_ELFGENERATOR_INCL
+#ifndef TR_SHOGENERATOR_INCL
+#define TR_SHOGENERATOR_INCL
 
 #if defined(LINUX)
 
-#include "codegen/OMRELFGenerator.hpp"
+#include "codegen/ELFSharedStorageGenerator.hpp"
 
 class TR_Memory;
 
 namespace TR{
-/**
- * ELFGenerator Abstract Base Class. This abstract base class provides
- * a way to share the commonalities between the building of different
- * kinds of ELF object files
-*/
+
 class OMR_EXTENSIBLE ELFGenerator : public OMR::ELFGeneratorConnector
     {
     public:
@@ -59,19 +55,10 @@ class OMR_EXTENSIBLE ELFRelocatableGenerator : public OMR::ELFRelocatableGenerat
     ELFRelocatableGenerator(TR::RawAllocator rawAllocator, uint8_t const * codeStart, size_t codeSize) : 
         OMR::ELFRelocatableGeneratorConnector(rawAllocator, codeStart, codeSize) { };
 
-    }; //class ELFGenerator
-
-class OMR_EXTENSIBLE ELFSharedObjectGenerator : public OMR::ELFSharedObjectGeneratorConnector
-    {
-    public:
-
-    ELFSharedObjectGenerator(TR::RawAllocator rawAllocator, uint8_t const * codeStart, size_t codeSize) : 
-        OMR::ELFSharedObjectGeneratorConnector(rawAllocator, codeStart, codeSize) { };
-
-    }; //class ELFGenerator
+    };
 
 } //namespace TR
 
 #endif //LINUX
 
-#endif //ifndef TR_ELFGENERATOR_INCL
+#endif //ifndef TR_ELFSHOGENERATOR_INCL

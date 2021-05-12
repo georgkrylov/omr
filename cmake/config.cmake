@@ -47,6 +47,7 @@ set(OMR_TEST_COMPILER OFF CACHE BOOL "Enable building the test compiler")
 set(OMR_LLJB OFF CACHE BOOL "Enable building LLJB")
 set(OMR_SHARED_CACHE OFF CACHE BOOL "Enable the Shared Cache")
 set(OMR_AOT OFF CACHE BOOL "Enable building OMR AOT compiler")
+set(OMR_ELF_SHARED_OBJECT OFF CACHE BOOL "Enable building AOT ELF Shared Object Generator")
 
 set(OMR_GC ON CACHE BOOL "Enable the GC")
 set(OMR_GC_TEST ${OMR_GC} CACHE BOOL "Enable the GC tests.")
@@ -80,6 +81,7 @@ endif()
 
 if (OMR_AOT)
 	add_definitions(-DOMR_RELOCATION_RUNTIME)
+	add_definitions(-DOMR_ELF_SHARED_CACHE)
 	set(OMR_AOT_TEST ON CACHE BOOL "Enable OMR AOT tests")
 endif()
 

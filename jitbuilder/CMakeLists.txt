@@ -57,6 +57,8 @@ endif()
 
 # Generated client API files
 set(CPP_API_GENERATOR ${CMAKE_CURRENT_SOURCE_DIR}/apigen/cppgen.py)
+set(ELF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../compiler/elfso)
+message(STATUS "ELF_DIR ================ ${ELF_DIR}")
 set(JITBUILDER_CPP_API_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/release/cpp/include)
 set(JITBUILDER_CPP_API_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}client/cpp)
 set(JITBUILDER_API_DESCRIPTION ${CMAKE_CURRENT_SOURCE_DIR}/apigen/jitbuilder.api.json)
@@ -129,13 +131,31 @@ create_omr_compiler_library(
 # NOTE: `release` directory isn't being automatically setup, so this
 #       is adding the actual compiler dir, as opposed to the 'composed'
 #       install directory.
+
+
+if(OMR_ELF_SHARED_OBJECT)
+	target_include_directories(jitbuilder
+		BEFORE PUBLIC 
+		${ELF_DIR}/codegen
+		${ELF_DIR}/env
+		${ELF_DIR}
+	)
+endif()
+
 target_include_directories(jitbuilder
 	INTERFACE
 		${JITBUILDER_CPP_API_HEADER_DIR}
 )
 
+if(OMR_ELF_SHARED_OBJECT)
+	target_link_libraries(jitbuilder
+		PUBLIC
+		aotelf
+	)
+endif()
+
 target_link_libraries(jitbuilder
-	PUBLIC
+		PUBLIC
 		${OMR_PORT_LIB}
 )
 
