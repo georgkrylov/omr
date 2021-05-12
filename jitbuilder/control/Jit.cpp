@@ -268,9 +268,9 @@ internal_storeCodeEntry(char* methodName)
    }
 
 void 
-internal_storeCodeEntries(uint32_t methodCount, char * filename)
+internal_storeCodeEntries(char * filename)
    {
-      TR::Compiler->aotAdapter->storeAOTCodeAndData(methodCount, filename);
+      TR::Compiler->aotAdapter->storeAOTCodeAndData(filename);
       //TR::Compiler->aotAdapter->prepareAndEmit(methodCount, filename);
       
       //prepareAndEmit(methodCount, filename);
