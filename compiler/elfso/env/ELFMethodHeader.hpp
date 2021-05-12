@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021, 2021 IBM Corp. and others
+ * Copyright (c) 2020, 2020 IBM Corp. and others
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -18,26 +18,27 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0 WITH Classpath-exception-2.0 OR LicenseRef-GPL-2.0 WITH Assembly-exception
  *******************************************************************************/
-#ifndef OMR_AOT_METHOD_HEADER
-#define OMR_AOT_METHOD_HEADER
+#ifndef ELF_ELFAOT_METHOD_HEADER
+#define ELF_ELFAOT_METHOD_HEADER
 
-#ifndef OMR_AOTMETHODHEADER_CONNECTOR
-#define OMR_AOTMETHODHEADER_CONNECTOR
-namespace OMR { class AOTMethodHeader; }
-namespace OMR { typedef OMR::AOTMethodHeader AOTMethodHeaderConnector; }
+#ifndef ELF_AOTMETHODHEADER_CONNECTOR
+#define ELF_AOTMETHODHEADER_CONNECTOR
+namespace ELF { class AOTMethodHeader; } 
+namespace ELF { typedef AOTMethodHeader AOTMethodHeaderConnector; }
+#else
+#error ELF::AOTMethodHeader expected to be a primary connector, but a OMR connector is already defined
 #endif
 
 #include "infra/Annotations.hpp"
 #include "env/jittypes.h"
+#include "env/OMRAOTMethodHeader.hpp"
 
-namespace TR { 
-   class AOTMethodHeader;
-   class CodeCacheManager;
-   }
-namespace OMR{
+namespace TR { class AOTMethodHeader;}
 
+namespace ELF
+{
 
-class OMR_EXTENSIBLE AOTMethodHeader
+class OMR_EXTENSIBLE AOTMethodHeader : public OMR::AOTMethodHeaderConnector
    {
    /** 
     * at compile time, the constructor runs with four arguments, 
@@ -58,18 +59,19 @@ public:
       {};
    // This constructor could be used for deserialization
    AOTMethodHeader(uint8_t* rawData);
+   
    uint8_t* compiledCodeStart;
    uint32_t compiledCodeSize;
    uint8_t* relocationsStart;
    uint32_t relocationsSize;
-   /**
-    * @brief Serializes contents of the AOT Method Header
-    * to a specified memory location
-    * @param buffer 
-    * The memory location to serialize AOTMethodHeader into
-    */
-   void serialize(uint8_t* buffer);
-   uintptr_t sizeOfSerializedVersion();
+   uint8_t* newCompiledCodeStart;
+
+   //uintptr_t sizeOfSerializedVersion();
+   //uint8_t* serialize(uint8_t* buffer);
+
+   
    };
+
 }
+
 #endif

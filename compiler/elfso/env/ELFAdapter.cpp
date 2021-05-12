@@ -18,40 +18,48 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0 WITH Classpath-exception-2.0 OR LicenseRef-GPL-2.0 WITH Assembly-exception
  *******************************************************************************/
+
+#include "env/CompilerEnv.hpp"
+#include <fstream>
+#include "runtime/CodeCacheManager.hpp"
+#include "compile/Compilation.hpp"
+#include "runtime/CodeCache.hpp"
+#include "runtime/AOTRelocationRuntime.hpp"
+#include <string.h>
+
+#include "env/AOTMethodHeader.hpp"
+#include "env/AOTAdapter.hpp"
 #include "env/AOTStorageInterface.hpp"
-#include "infra/Assert.hpp"
+#include "codegen/ELFGenerator.hpp"
 
-#if (HOST_OS == OMR_LINUX)
-#include <elf.h>
-#include <unistd.h>
-#endif
+ELF::AOTAdapter::AOTAdapter():
+OMR::AOTAdapterConnector()//_methodNameToHeaderMap(str_comparator)
+{}
 
-TR::AOTStorageInterface *
-OMR::AOTStorageInterface::self()
-   {
-   return static_cast<TR::AOTStorageInterface *>(this);
-   }
+TR::AOTAdapter *
+ELF::AOTAdapter::self()
+    {
+    return static_cast<TR::AOTAdapter *>(this);
+    }
 
-uint8_t* OMR::AOTStorageInterface::loadEntry(const char* key )
-   {
-   TR_UNIMPLEMENTED();
-   return 0;
-   }
+void ELF::AOTAdapter::prepareAndEmit(uint32_t methodCount, char * filename)
+{
+    _storage->self()->consolidateBuffers(methodCount, filename);
+}
 
+/*   void* ELF::AOTAdapter::getMethodCode(const char *methodName){
+      printf("\n HELLO IN getMethodCode");
+      return NULL;
+  } */
 
-void OMR::AOTStorageInterface::storeEntry(const char* key,TR::AOTMethodHeader* hdr)
-   {
-   uint8_t* buffer = self()->allocateMemoryInCache(hdr->sizeOfSerializedVersion());
-   hdr->serialize(buffer);
-   self()->storeEntryProjectSpecific(key,buffer, hdr->sizeOfSerializedVersion());
-   }
+void ELF::AOTAdapter::storeAOTCodeAndData(uint32_t methodCount, char * filename)
+{
+    //printf("\n In ELFAdapter \n");
+    self()->prepareAndEmit(methodCount, filename);
+}
 
-uint8_t* OMR::AOTStorageInterface::allocateMemoryInCache(uintptr_t size)
-   {
-   TR_UNIMPLEMENTED();
-   }
-
-void OMR::AOTStorageInterface::storeEntryProjectSpecific(const char *methodName, void *data, uint32_t size)
-   {
-   TR_UNIMPLEMENTED();
-   }
+void ELF::AOTAdapter::loadFile(const char *filename)
+    {
+    //printf("In ELF loadFile");
+    _storage->dynamicLoading(filename);
+    }

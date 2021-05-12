@@ -119,13 +119,31 @@ create_omr_compiler_library(
 # NOTE: `release` directory  isn't being automatically setup, so this
 #       is adding the actual compiler dir, as opposed to the 'composed'
 #       install directory.
+
+
+if(OMR_ELF_SHARED_OBJECT)
+	target_include_directories(jitbuilder
+		BEFORE PUBLIC 
+		/etc/vscode-experiments/wasmjitwithomr/third_party/omr/compiler/elfso/codegen
+		/etc/vscode-experiments/wasmjitwithomr/third_party/omr/compiler/elfso/env
+		/etc/vscode-experiments/wasmjitwithomr/third_party/omr/compiler/elfso
+)
+endif()
+
 target_include_directories(jitbuilder
 	INTERFACE
 		${JITBUILDER_CPP_API_HEADER_DIR}
 )
 
+if(OMR_ELF_SHARED_OBJECT)
+	target_link_libraries(jitbuilder
+		PUBLIC
+		aotelf
+)
+endif()
+
 target_link_libraries(jitbuilder
-	PUBLIC
+		PUBLIC
 		${OMR_PORT_LIB}
 )
 

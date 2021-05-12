@@ -48,8 +48,11 @@ add_compiler_subdirectory(infra)
 add_compiler_subdirectory(optimizer)
 add_compiler_subdirectory(ras)
 add_compiler_subdirectory(runtime)
-
 add_compiler_subdirectory(${TR_TARGET_ARCH})
+
+if(OMR_ELF_SHARED_OBJECT)
+	add_compiler_subdirectory(elfso)
+endif(OMR_ELF_SHARED_OBJECT)
 
 # Promote the list variable into a global property.
 # That way we dont need to worry about scoping issues.

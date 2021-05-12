@@ -33,9 +33,18 @@ namespace OMR { typedef OMR::AOTStorageInterface AOTStorageInterfaceConnector; }
 #include "env/AOTMethodHeader.hpp"
 #include "env/jittypes.h"
 
-namespace TR { class AOTStorageInterface; }
-namespace TR { class AOTMethodHeader; }
+#if (HOST_OS == OMR_LINUX)
+#include <elf.h>
+#include <unistd.h>
+#include "env/AOTMethodHeader.hpp"
+#endif
 
+namespace TR 
+{ 
+   class AOTStorageInterface;
+   class AOTAdapter;
+   class AOTMethodHeader;
+    }
 namespace OMR {
 /**
  * @brief The class is supposed to be inherited by 
@@ -94,6 +103,7 @@ protected:
    void storeEntryProjectSpecific(const char* methodName, void* data, uint32_t size);
    };
 
+   typedef unsigned int aotint;
 } // namespace OMR
 
 #endif //OMR_AOTSTORAGEINTERFACE_INCL

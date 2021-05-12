@@ -28,6 +28,8 @@
 #include "runtime/AOTRelocationRuntime.hpp"
 #include "infra/STLUtils.hpp"
 #include <string.h>
+#include <iostream>
+
 
 OMR::AOTAdapter::AOTAdapter():
 _methodNameToHeaderMap(str_comparator)
@@ -45,11 +47,13 @@ void OMR::AOTAdapter::initializeAOTClasses(TR::CodeCacheManager* cc)
     _reloRuntime = new (PERSISTENT_NEW) TR::AOTRelocationRuntime (NULL);
     _codeCacheManager = cc;
     }
+
  
 void OMR::AOTAdapter::storeExternalItem(const char *itemName, void* itemAddress)
     {
     _reloRuntime->registerPersistedItemAddress(itemName,itemAddress);
     }
+
 
 void OMR::AOTAdapter::storeAOTMethodAndDataInTheCache(const char* methodName)
     {
@@ -57,6 +61,20 @@ void OMR::AOTAdapter::storeAOTMethodAndDataInTheCache(const char* methodName)
     _storage->storeEntry(methodName,hdr);
     }
 
+
+void OMR::AOTAdapter::storeAOTCodeAndData(uint32_t methodCount, char * filename)
+{
+    //printf("\n In OMRAdapter \n");
+}
+
+ void OMR::AOTAdapter::storeHeaderForCompiledMethodELF(const char* methodName)
+    {
+    //printf("\n In OMRAdapter \n");
+    if (_methodNameToHeaderMap[methodName] != NULL)
+        {
+        //self()->storeAOTMethodAndDataInELFSO(methodName);
+        }
+    } 
 TR::AOTMethodHeader* OMR::AOTAdapter::loadAOTMethodAndDataFromTheCache(const char* methodName)
     {
     TR::AOTMethodHeader* methodHeader = NULL;
@@ -97,6 +115,7 @@ OMR::AOTAdapter::createAndRegisterAOTMethodHeader(const char* methodName, uint8_
 
 void OMR::AOTAdapter::relocateRegisteredMethod(const char* methodName)
     {
+    //printf("\n In ================================= In relocateRegisteredMethod ============================== ");
     TR::AOTMethodHeader* hdr = self()-> getRegisteredAOTMethodHeader(methodName);
     _reloRuntime->self()->relocateMethodAndData(hdr,hdr->compiledCodeStart);
     }
@@ -113,11 +132,11 @@ void OMR::AOTAdapter::relocateRegisteredMethod(const char* methodName)
 
 void OMR::AOTAdapter::storeHeaderForCompiledMethod(const char* methodName)
     {
-
     if (_methodNameToHeaderMap[methodName] != NULL)
         {
         self()->storeAOTMethodAndDataInTheCache(methodName);
         }
+
     }
 
 void* OMR::AOTAdapter::getMethodCode(const char* methodName)
@@ -146,4 +165,9 @@ void* OMR::AOTAdapter::getMethodCode(const char* methodName)
     _reloRuntime->registerPersistedItemAddress(methodName,warmCode);
     _codeCacheManager->unreserveCodeCache(codeCache);
     return warmCode;
+    }
+
+void OMR::AOTAdapter::loadFile(const char *filename)
+    {
+    //printf("\nIn loadFile");
     }

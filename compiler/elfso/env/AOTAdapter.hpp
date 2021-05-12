@@ -18,40 +18,21 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0 WITH Classpath-exception-2.0 OR LicenseRef-GPL-2.0 WITH Assembly-exception
  *******************************************************************************/
-#include "env/AOTStorageInterface.hpp"
-#include "infra/Assert.hpp"
+#ifndef TR_AOT_ADAPTER_INCL
+#define TR_AOT_ADAPTER_INCL
 
-#if (HOST_OS == OMR_LINUX)
-#include <elf.h>
-#include <unistd.h>
+#include "env/ELFAdapter.hpp"
+
+namespace TR
+{
+class OMR_EXTENSIBLE AOTAdapter : public ELF::AOTAdapterConnector
+   {
+public:
+   AOTAdapter() : ELF::AOTAdapterConnector()
+      { };
+
+   };
+
+}
+
 #endif
-
-TR::AOTStorageInterface *
-OMR::AOTStorageInterface::self()
-   {
-   return static_cast<TR::AOTStorageInterface *>(this);
-   }
-
-uint8_t* OMR::AOTStorageInterface::loadEntry(const char* key )
-   {
-   TR_UNIMPLEMENTED();
-   return 0;
-   }
-
-
-void OMR::AOTStorageInterface::storeEntry(const char* key,TR::AOTMethodHeader* hdr)
-   {
-   uint8_t* buffer = self()->allocateMemoryInCache(hdr->sizeOfSerializedVersion());
-   hdr->serialize(buffer);
-   self()->storeEntryProjectSpecific(key,buffer, hdr->sizeOfSerializedVersion());
-   }
-
-uint8_t* OMR::AOTStorageInterface::allocateMemoryInCache(uintptr_t size)
-   {
-   TR_UNIMPLEMENTED();
-   }
-
-void OMR::AOTStorageInterface::storeEntryProjectSpecific(const char *methodName, void *data, uint32_t size)
-   {
-   TR_UNIMPLEMENTED();
-   }

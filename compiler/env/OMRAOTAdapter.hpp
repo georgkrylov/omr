@@ -23,8 +23,10 @@
 #define OMR_AOTADAPTER_INCL
 #include "env/TRMemory.hpp"
 #include "env/TypedAllocator.hpp"
+#include "codegen/ELFGenerator.hpp"
 #include "infra/Annotations.hpp"
 #include "compiler/env/jittypes.h"
+#include "env/RawAllocator.hpp"
 #include <map>
 #ifndef OMR_AOTADAPTER_CONNECTOR
 #define OMR_AOTADAPTER_CONNECTOR
@@ -91,6 +93,7 @@ public:
    TR::AOTStorageInterface* getAOTStorageInterface();
 
    void initializeAOTClasses(TR::CodeCacheManager* CodeCacheManager);
+   void initializeAOTELF(TR::CodeCacheManager* CodeCacheManager);
    /**
     * @brief method that inserts a string and an AOTMethodHeader key-value 
     * pair into the symbol table (currently realized as a map)
@@ -107,7 +110,10 @@ public:
     * @param methodName 
     */
    void storeHeaderForCompiledMethod(const char *methodName);
+   void storeHeaderForCompiledMethodELF(const char *methodName);
 
+
+   void loadFile(const char *filename);
    /**
     * @brief Register the method (or a data item )loaded to a runtime environment from another source—for example, 
     * from an external ELF file using dlopen() routine. This method would register it with a 
@@ -159,11 +165,14 @@ public:
     */
    void relocateRegisteredMethod(const char *methodName);
 
-protected:
+//protected:
    /**
     * @brief std::map requires an implementation of comparators
     * for types that are not parts of the standard c++ library
     */
+   void storeAOTCodeAndData(uint32_t methodCount, char * filename);
+//protected:
+
    typedef bool (*StrComparator)(const char *, const char*);
    /**
     * @brief The map of consisting of AOTMethod headers, keyed by string variables. 
@@ -173,6 +182,11 @@ protected:
     */
    typedef std::map<const char *, TR::AOTMethodHeader*,StrComparator> NameToHeaderMap;
    NameToHeaderMap         _methodNameToHeaderMap;
+
+   protected:
+   TR::AOTRelocationRuntime* _reloRuntime;
+
+   TR::AOTStorageInterface* _storage;
    
 private:
    /**
@@ -183,7 +197,11 @@ private:
     * @param methodName 
     */
    void storeAOTMethodAndDataInTheCache(const char *methodName);
+   
 
+   
+   std::pair<uint32_t, uint32_t> calculateAggregateSize();
+   void consolidateCompiledCode(uint8_t *ptrStart);
    /**
     * @brief The loadAOTMethodAndDataFromTheCache performs a call to a Storage Object for
     * loading an entry keyed by method name. If there is a cache entry retrieved from the cache,
@@ -215,18 +233,19 @@ private:
     * @brief A pointer to the object that is used as a storage
     * 
     */
-   TR::AOTStorageInterface* _storage;
+   //TR::AOTStorageInterface* _storage;
 
    /**
     * @brief Pointer to relocationRuntime that applies relocations
     * 
     */
-   TR::AOTRelocationRuntime* _reloRuntime;
+   
    /**
     * @brief A pointer to the CodeCache manager—this class manages memory that contains 
     * executable code, which is necessary if the AOT module is used to load code
     */
    TR::CodeCacheManager*    _codeCacheManager;
+   TR::CodeCacheManager*    _codeCacheManagerELF;
 
 
 };
