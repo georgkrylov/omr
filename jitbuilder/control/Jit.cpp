@@ -39,7 +39,7 @@
 #include "runtime/TRRelocationRecord.hpp"
 #include "runtime/TRRelocationRuntime.hpp"
 #include "env/AOTLoadStoreDriver.hpp"
-//#include "elfso/env/AOTAdapter.hpp"
+//#include "elfso/env/AOTLoadStoreDriver.hpp"
 
 static TR::AOTLoadStoreDriver* AOTLoadStoreDriver;
 
@@ -127,12 +127,22 @@ bool initializeAOT(TR::CodeCacheManager* codeCacheManager) {
    return true;
 }
 
+/* bool initializeAOTELF(TR::CodeCacheManager* codeCacheManager) {  
+   ELFAOTAdapter = new (PERSISTENT_NEW) TR::AOTAdapter();
+   //AOTAdapter->initializeAOTClassesELF(codeCacheManager);
+   return true;
+} */
+
 void *getCodeEntry(const char *methodName){
   return  AOTLoadStoreDriver->getMethodCode(methodName);
 }
 
 void relocateCodeEntry(const char *methodName) {
    AOTLoadStoreDriver->relocateRegisteredMethod(methodName);
+}
+
+void loadFileInMemory(const char *filename) {
+   AOTLoadStoreDriver->loadFile(filename);
 }
 
 // helperIDs is an array of helper id corresponding to the addresses passed in "helpers"
@@ -257,6 +267,16 @@ internal_storeCodeEntry(char* methodName)
    storeCodeEntry((const char*)methodName);
    }
 
+void 
+internal_storeCodeEntries(uint32_t methodCount, char * filename)
+   {
+      TR::Compiler->aotLoadStoreDriver->storeAOTCodeAndData(filename);
+      //TR::Compiler->aotLoadStoreDriver->prepareAndEmit(methodCount, filename);
+      
+      //prepareAndEmit(methodCount, filename);
+     //TR::Compiler->aotLoadStoreDriver->storeHeaderForCompiledMethod(methodName);
+   }
+
 void *
 internal_getCodeEntry(char *methodName)
    {
@@ -273,3 +293,9 @@ void internal_setCodeEntry(char *methodName, void *codeLocation)
      const char *methodN = const_cast<const char *>(methodName);
      AOTLoadStoreDriver->registerExternalItem(methodN,codeLocation);
    }
+
+void internal_loadFileInMemory(char *filename)
+   {
+   loadFileInMemory(const_cast<const char*>(filename));
+   }
+
