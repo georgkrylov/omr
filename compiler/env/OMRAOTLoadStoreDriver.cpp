@@ -61,6 +61,14 @@ OMR::AOTLoadStoreDriver::storeAOTMethodAndDataInTheStorage(const char* methodNam
    _storage->storeEntry(methodName,hdr);
    }
 
+
+
+void OMR::AOTLoadStoreDriver::storeAOTCodeAndData(char * filename)
+{
+    //printf("\n In OMRAdapter \n");
+}
+
+
 TR::AOTMethodHeader*
 OMR::AOTLoadStoreDriver::loadAOTMethodAndDataFromTheStorage(const char* methodName)
    {
@@ -159,4 +167,9 @@ OMR::AOTLoadStoreDriver::getMethodCode(const char* methodName)
    _reloRuntime->registerRuntimeItemAddress(methodName,warmCode);
    _codeCacheManager->unreserveCodeCache(codeCache);
    return warmCode;
+   }
+
+void OMR::AOTLoadStoreDriver::loadFile(const char *filename)
+   {
+   //printf("\nIn loadFile");
    }
