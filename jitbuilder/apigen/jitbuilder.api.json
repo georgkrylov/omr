@@ -44,12 +44,29 @@
             {"name":"methodName","type":"string"}
             ]
         },
+        { "name": "storeCodeEntries"
+            , "overloadsuffix": ""
+            , "flags": []
+            , "return": "none"
+            , "parms": [
+                {"name":"methodCount","type":"uint32"},
+                {"name":"filename","type":"string"}
+                ]
+        },
         { "name": "getCodeEntry"
         , "overloadsuffix": ""
         , "flags": []
         , "return": "pointer"
         , "parms": [
             {"name":"methodName","type":"string"}
+            ]
+        },
+        { "name": "loadFileInMemory"
+        , "overloadsuffix": ""
+        , "flags": []
+        , "return": "pointer"
+        , "parms": [
+            {"name":"filename","type":"string"}
             ]
         },
         { "name": "setCodeEntry"
