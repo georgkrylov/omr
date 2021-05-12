@@ -38,6 +38,7 @@
 #include "runtime/TRRelocationRecord.hpp"
 #include "runtime/TRRelocationRuntime.hpp"
 #include "env/AOTAdapter.hpp"
+//#include "elfso/env/AOTAdapter.hpp"
 
 static TR::AOTAdapter* AOTAdapter;
 
@@ -117,6 +118,7 @@ initializeCodeCache(TR::CodeCacheManager & codeCacheManager)
 void storeCodeEntry(const char *methodName) 
    {
      TR::Compiler->aotAdapter->storeHeaderForCompiledMethod(methodName);
+     //TR::Compiler->aotAdapter->storeHeaderForCompiledMethodELF(methodName);
    }
 
 bool initializeAOT(TR::CodeCacheManager* codeCacheManager) {  
@@ -125,12 +127,22 @@ bool initializeAOT(TR::CodeCacheManager* codeCacheManager) {
    return true;
 }
 
+/* bool initializeAOTELF(TR::CodeCacheManager* codeCacheManager) {  
+   ELFAOTAdapter = new (PERSISTENT_NEW) TR::AOTAdapter();
+   //AOTAdapter->initializeAOTClassesELF(codeCacheManager);
+   return true;
+} */
+
 void *getCodeEntry(const char *methodName){
   return  AOTAdapter->getMethodCode(methodName);
 }
 
 void relocateCodeEntry(const char *methodName) {
    AOTAdapter->relocateRegisteredMethod(methodName);
+}
+
+void loadFileInMemory(const char *filename) {
+   AOTAdapter->loadFile(filename);
 }
 
 // helperIDs is an array of helper id corresponding to the addresses passed in "helpers"
@@ -255,6 +267,17 @@ internal_storeCodeEntry(char* methodName)
    storeCodeEntry((const char*)methodName);
    }
 
+void 
+internal_storeCodeEntries(uint32_t methodCount, char * filename)
+   {
+      TR::Compiler->aotAdapter->storeAOTCodeAndData(methodCount, filename);
+      //TR::Compiler->aotAdapter->prepareAndEmit(methodCount, filename);
+      
+      //prepareAndEmit(methodCount, filename);
+     //TR::Compiler->aotAdapter->storeHeaderForCompiledMethod(methodName);
+     //TR::Compiler->aotAdapter->storeHeaderForCompiledMethodELF(methodName);
+   }
+
 void *
 internal_getCodeEntry(char *methodName)
    {
@@ -271,3 +294,9 @@ void internal_setCodeEntry(char *methodName, void *codeLocation)
      const char *methodN = const_cast<const char *>(methodName);
      AOTAdapter->storeExternalItem(methodN,codeLocation);
    }
+
+void internal_loadFileInMemory(char *filename)
+   {
+   loadFileInMemory(const_cast<const char*>(filename));
+   }
+
