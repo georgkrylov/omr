@@ -23,7 +23,6 @@
 #define OMR_AOTADAPTER_INCL
 #include "env/TRMemory.hpp"
 #include "env/TypedAllocator.hpp"
-#include "codegen/ELFGenerator.hpp"
 #include "infra/Annotations.hpp"
 #include "compiler/env/jittypes.h"
 #include "env/RawAllocator.hpp"

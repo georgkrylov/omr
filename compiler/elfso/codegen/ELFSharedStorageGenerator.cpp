@@ -432,7 +432,7 @@ ELF::ELFSharedObjectGenerator::consolidateCompiledCode(uint32_t methodCount, cha
         {
         hdr = it->second;
         memcpy(ptrEnd, hdr->self()->compiledCodeStart, hdr->self()->compiledCodeSize);
-        hdr->self()->newCompiledCodeStart = ptrEnd;
+        hdr->self()->compiledCodeStart = ptrEnd;
         ptrEnd += hdr->self()->compiledCodeSize;
 
         }

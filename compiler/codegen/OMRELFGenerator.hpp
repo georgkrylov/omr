@@ -67,6 +67,7 @@ namespace OMR { typedef OMR::ELFSharedObjectGenerator ELFSharedObjectGeneratorCo
 
 #include <elf.h>
 #include <string>
+#include <map>
 #include "env/TypedAllocator.hpp"
 #include "env/RawAllocator.hpp"
 #include "runtime/CodeCacheManager.hpp"
