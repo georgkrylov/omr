@@ -522,7 +522,7 @@ ELF::ELFSharedObjectGenerator::calculateAggregateBufferSize()
 void 
 ELF::ELFSharedObjectGenerator::storeEntries(const char* fileName, uint8_t *codeStart, uint32_t codeSize, uint32_t totalMethodNameLength, uint32_t methodCount)
 {
-      printf("\n In fileName , methodCount , totalMethodNameLength = [%s] [%u] [%u] \n",fileName, methodCount, totalMethodNameLength);
+      //printf("\n In fileName , methodCount , totalMethodNameLength = [%s] [%u] [%u] \n",fileName, methodCount, totalMethodNameLength);
       setCodeSegmentDetails(codeStart, codeSize, methodCount, totalMethodNameLength );
       initialize();
       emitELFSO(fileName);                                 
