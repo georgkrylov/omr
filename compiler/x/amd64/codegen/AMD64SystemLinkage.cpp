@@ -816,6 +816,9 @@ TR::Register *TR::AMD64SystemLinkage::buildDirectDispatch(
       if (comp()->getOption(TR_EmitRelocatableELFFile))
          {
          LoadRegisterInstruction->setReloKind(TR_NativeMethodAbsolute);
+         } else if (comp()->compileRelocatableCode())
+         {
+         LoadRegisterInstruction->setReloKind(TR_NativeMethodAbsolute);
          }
 
       instr = generateRegInstruction(CALLReg, callNode, scratchReg, preDeps, cg());
