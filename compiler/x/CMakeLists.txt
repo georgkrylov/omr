@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017, 2021 IBM Corp. and others
+# Copyright (c) 2017, 2022 IBM Corp. and others
 #
 # This program and the accompanying materials are made available under
 # the terms of the Eclipse Public License 2.0 which accompanies this
@@ -43,6 +43,7 @@ compiler_library(x
 	${CMAKE_CURRENT_LIST_DIR}/codegen/X86BinaryEncoding.cpp
 	${CMAKE_CURRENT_LIST_DIR}/codegen/X86Debug.cpp
 	${CMAKE_CURRENT_LIST_DIR}/codegen/X86FPConversionSnippet.cpp
+	${CMAKE_CURRENT_LIST_DIR}/codegen/OMRAheadOfTimeCompile.cpp
 	${CMAKE_CURRENT_LIST_DIR}/codegen/OMRInstruction.cpp
 	${CMAKE_CURRENT_LIST_DIR}/codegen/OMRInstructionDelegate.cpp
 	${CMAKE_CURRENT_LIST_DIR}/codegen/OMRX86Instruction.cpp

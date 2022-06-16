@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2016, 2019 IBM Corp. and others
+# Copyright (c) 2016, 2022 IBM Corp. and others
 #
 # This program and the accompanying materials are made available under
 # the terms of the Eclipse Public License 2.0 which accompanies this
@@ -33,6 +33,7 @@ JIT_PRODUCT_BACKEND_SOURCES+=\
     $(JIT_OMR_DIRTY_DIR)/x/codegen/HelperCallSnippet.cpp \
     $(JIT_OMR_DIRTY_DIR)/x/codegen/IA32LinkageUtils.cpp \
     $(JIT_OMR_DIRTY_DIR)/x/codegen/IntegerMultiplyDecomposer.cpp \
+    $(JIT_OMR_DIRTY_DIR)/x/codegen/OMRAheadOfTimeCompile.cpp \
     $(JIT_OMR_DIRTY_DIR)/x/codegen/OMRMemoryReference.cpp \
     $(JIT_OMR_DIRTY_DIR)/x/codegen/OMRInstOpCode.cpp \
     $(JIT_OMR_DIRTY_DIR)/x/codegen/OutlinedInstructions.cpp \
