@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2022 IBM Corp. and others
+ * Copyright (c) 2000, 2023 IBM Corp. and others
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -37,6 +37,7 @@
 #include "infra/Assert.hpp"
 #include "infra/Flags.hpp"
 #include "infra/Link.hpp"
+#include "runtime/TRRelocationRecord.hpp"
 #include "runtime/Runtime.hpp"
 
 void TR::Relocation::apply(TR::CodeGenerator *codeGen)
@@ -500,7 +501,11 @@ TR::IteratedExternalRelocation::IteratedExternalRelocation(uint8_t *target, TR_E
         _relocationData(NULL),
         _relocationDataCursor(NULL),
         // initial size is size of header for this type
+#ifdef OMR_RELOCATION_RUNTIME
+        _sizeOfRelocationData(TR::RelocationRecord::getSizeOfAOTRelocationHeader(k)),
+#else
         _sizeOfRelocationData(codeGen->getAheadOfTimeCompile()->getSizeOfAOTRelocationHeader(k)),
+#endif
         _recordModifier(modifier.getValue()),
         _full(false),
         _kind(k)
@@ -515,7 +520,11 @@ TR::IteratedExternalRelocation::IteratedExternalRelocation(uint8_t *target, uint
         _relocationData(NULL),
         _relocationDataCursor(NULL),
         // initial size is size of header for this type
-        _sizeOfRelocationData(codeGen->getAheadOfTimeCompile()->getSizeOfAOTRelocationHeader(k)),
+#ifdef OMR_RELOCATION_RUNTIME
+         _sizeOfRelocationData(TR::RelocationRecord::getSizeOfAOTRelocationHeader(k)),
+#else
+         _sizeOfRelocationData(codeGen->getAheadOfTimeCompile()->getSizeOfAOTRelocationHeader(k)),
+#endif
         _recordModifier(modifier.getValue()),
         _full(false),
         _kind(k)

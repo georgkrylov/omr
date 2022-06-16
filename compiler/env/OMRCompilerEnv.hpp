@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2021 IBM Corp. and others
+ * Copyright (c) 2000, 2023 IBM Corp. and others
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -43,6 +43,7 @@ namespace OMR { typedef OMR::CompilerEnv CompilerEnvConnector; }
 #include "env/VMEnv.hpp"
 #include "env/VMMethodEnv.hpp"
 #include "env/TRMemory.hpp"
+#include "env/AOTLoadStoreDriver.hpp"
 
 namespace TR { class CompilerEnv; }
 
@@ -98,6 +99,10 @@ public:
    // Debug environment for the compiler.  This is not thread safe.
    //
    TR::DebugEnv debug;
+
+   // Reference to the Ahead of Time compiler infrastructure in OMR
+   //
+   TR::AOTLoadStoreDriver* aotLoadStoreDriver;
 
    bool isInitialized() { return _initialized; }
 
