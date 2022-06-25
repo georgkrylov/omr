@@ -26,6 +26,13 @@ endmacro(add_aotelfso_subdirectory)
 
 set(CORE_ELF_OBJECTS "")
 
+if(OMR_ARCH_X86 OR OMR_ARCH_S390)
+	set(OMR_ENHANCED_WARNINGS OFF)
+else()
+	set(OMR_WARNINGS_AS_ERRORS OFF)
+	set(OMR_ENHANCED_WARNINGS OFF)
+endif()
+
 macro(aotelf_library libraryname)
 	list(APPEND CORE_ELF_OBJECTS ${ARGN})
 endmacro(aotelf_library)
@@ -33,36 +40,11 @@ endmacro(aotelf_library)
 add_aotelfso_subdirectory(env)
 add_aotelfso_subdirectory(codegen)
 
-message(STATUS "HELLO!!!!!!!!")
-message(STATUS ${CORE_ELF_OBJECTS})
-message(STATUS ${TR_TARGET_64BIT})
 
-add_library(aotelf ${CORE_ELF_OBJECTS})
-
-target_compile_definitions(aotelf
-	PUBLIC
-		TR_TARGET_64BIT
+create_omr_compiler_library(
+	NAME aotelf
+	OBJECTS ${CORE_ELF_OBJECTS}
+	DEFINES
 )
-
-target_include_directories(aotelf
-	PUBLIC
-		${PROJECT_SOURCE_DIR}/compiler/elfso
-		${PROJECT_SOURCE_DIR}/compiler/aarch64
-		${omr_SOURCE_DIR}/compiler
-		${OMR_PORT_LIB}
-		${omr_SOURCE_DIR}
-		include
-		.	
-)
-
-target_link_libraries(aotelf
-	j9pool
-	j9hashtable
-	${OMR_PORT_LIB}
-)
-
-# Promote the list variable into a global property.
-# That way we dont need to worry about scoping issues.
-set_property(GLOBAL PROPERTY OMR_CORE_ELF_OBJECTS ${CORE_ELF_OBJECTS})
-#set(CMAKE_CXX_FLAGS "-fpermissive -std=c++0x11")
-set (CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
+target_link_libraries(aotelf PUBLIC dl)
+make_compiler_target(aotelf INTERFACE COMPILER jitbuilder)
