@@ -127,6 +127,9 @@ bool initializeAOT(TR::CodeCacheManager* codeCacheManager) {
    return true;
 }
 
+void *internal_getLoadStoreDriver(){
+   return AOTLoadStoreDriver;
+}
 
 void *getCodeEntry(const char *methodName){
   return  AOTLoadStoreDriver->getMethodCode(methodName);
