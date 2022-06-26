@@ -60,6 +60,12 @@
             {"name":"methodName","type":"string"}
             ]
         },
+        { "name": "getLoadStoreDriver"
+            , "overloadsuffix": ""
+            , "flags": []
+            , "return": "pointer"
+            , "parms": []
+        },
         { "name": "loadFileInMemory"
         , "overloadsuffix": ""
         , "flags": []
