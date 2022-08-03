@@ -155,6 +155,13 @@ public:
     */
    void relocateRegisteredMethod(const char *methodName);
 
+   /**
+    * @brief method that inserts a string and an AOTMethodHeader key-value
+    * pair into the symbol table (currently realized as a map)
+    * @param methodName
+    * @param hdr
+    */
+   void registerAOTMethodHeader(const char *methodName, TR::AOTMethodHeader* hdr);
 protected:
    /**
     * @brief The self() method, required by the extensible classes hierarchy
@@ -185,14 +192,6 @@ protected:
     * @return TR::AOTMethodHeader*
     */
    TR::AOTMethodHeader *loadAOTMethodAndDataFromTheStorage(const char *methodName);
-
-   /**
-    * @brief method that inserts a string and an AOTMethodHeader key-value
-    * pair into the symbol table (currently realized as a map)
-    * @param methodName
-    * @param hdr
-    */
-   void registerAOTMethodHeader(const char *methodName, TR::AOTMethodHeader* hdr);
 
 
    /**
