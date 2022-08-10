@@ -549,7 +549,7 @@ ELF::ELFSharedObjectGenerator::loadEntry(const char*  key)
     }
     uint8_t* addr = (uint8_t*) dlsym(_handle, key);
         if ((error = dlerror()) != NULL)  {
-            fputs(error, stderr);
+            // fputs(error, stderr);
             return nullptr;
         }else {
             return new TR::AOTMethodHeader(addr);
