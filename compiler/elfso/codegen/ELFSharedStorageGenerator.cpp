@@ -462,13 +462,15 @@ void ELF::ELFSharedObjectGenerator::consolidateBuffers(char * filename)
     uint8_t* compiledCodeBuffer = (uint8_t*) malloc (total_BufferMethodNameLength.first);
     ptrStart = ptrEnd = compiledCodeBuffer;
 
-      for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
-        {
-        hdr = it->second;
-        hdr->serializeMethod(ptrEnd,hdr->sizeOfSerializedVersion());
-        ptrEnd += hdr->sizeOfSerializedVersion();
-        
-        }
+   for( auto it = ELFDataMap.begin(); it != ELFDataMap.end(); ++it )
+      {
+      hdr = it->second;
+      if (hdr != NULL) /* Legal, if entry point was not used */
+         {
+         hdr->serializeMethod(ptrEnd,hdr->sizeOfSerializedVersion());
+         ptrEnd += hdr->sizeOfSerializedVersion();
+         }
+      }
 
     storeEntries(filename, ptrStart, total_BufferMethodNameLength.first, total_BufferMethodNameLength.second, ELFDataMap.size());   
     }
@@ -511,8 +513,8 @@ ELF::ELFSharedObjectGenerator::calculateAggregateBufferSize()
         methodName = it->first;
         hdr = ELFDataMap[methodName];
    ////     printf("\n Size of buffer = %u \n",hdr->sizeOfSerializedVersion());
-        totalBufferSize += hdr->sizeOfSerializedVersion();
-        totalMethodNameLength += strlen(methodName) + 1;
+            totalBufferSize += hdr->sizeOfSerializedVersion();
+            totalMethodNameLength += strlen(methodName) + 1;
         }
     char const * _DYNAMIC  = "_DYNAMIC";
     totalMethodNameLength += strlen(_DYNAMIC) + 1;
@@ -549,7 +551,7 @@ ELF::ELFSharedObjectGenerator::loadEntry(const char*  key)
     }
     uint8_t* addr = (uint8_t*) dlsym(_handle, key);
         if ((error = dlerror()) != NULL)  {
-            fputs(error, stderr);
+            // fputs(error, stderr);
             return nullptr;
         }else {
             return new TR::AOTMethodHeader(addr);
