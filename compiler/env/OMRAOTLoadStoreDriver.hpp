@@ -200,8 +200,6 @@ protected:
    typedef std::map<const char *, TR::AOTMethodHeader*,StrComparator> NameToHeaderMap;
    NameToHeaderMap         _methodNameToHeaderMap;
 
-
-private:
    /**
     * @brief The storeAOTMethodAndDataInTheCache accepts a method name and performs a
     * lookup of an AOTMethodHeader in the map. Later, the AOTMethodHeader is serialized
@@ -211,6 +209,7 @@ private:
     */
    void storeAOTMethodAndDataInTheStorage(const char *methodName);
 
+private:
    std::pair<uint32_t, uint32_t> calculateAggregateSize();
    void consolidateCompiledCode(uint8_t *ptrStart);
    /**
