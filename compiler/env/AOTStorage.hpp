@@ -27,7 +27,7 @@
 
 namespace TR{
 
-class OMR_EXTENSIBLE AOTStorage : public OMR::AOTStorageConnector
+class AOTStorage : public OMR::AOTStorage
    {
 public:
    AOTStorage() : OMR::AOTStorage()

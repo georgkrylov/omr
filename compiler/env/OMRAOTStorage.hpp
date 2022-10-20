@@ -23,11 +23,7 @@
 #ifndef OMR_AOTSTORAGE_INCL
 #define OMR_AOTSTORAGE_INCL
 
-#ifndef OMR_AOTSTORAGE_CONNECTOR
-#define OMR_AOTSTORAGE_CONNECTOR
-namespace OMR { class AOTStorage; }
-namespace OMR { typedef OMR::AOTStorage AOTStorageConnector; }
-#endif // OMR_AOTSTORAGE_CONNECTOR
+
 
 #include "infra/Annotations.hpp"
 #include "env/AOTMethodHeader.hpp"
@@ -45,7 +41,7 @@ namespace OMR
  * a Method Header. This will allow OMR AOT infrastructure to work with
  * preserved data
  */
-class OMR_EXTENSIBLE AOTStorage
+class AOTStorage
    {
 public:
    /**
@@ -55,7 +51,7 @@ public:
     * @return uint8_t* a pointer to the memory region
     * that contains the AOTMethodHeader
     */
-   TR::AOTMethodHeader* loadEntry(const char* key);
+   virtual TR::AOTMethodHeader* loadEntry(const char* key);
 
    /**
     * @brief method to store data for the
@@ -65,7 +61,7 @@ public:
     * @param data pointer to data
     * @param size size of the data vector
     */
-   void storeEntry(const char* methodName, TR::AOTMethodHeader* header);
+   virtual void storeEntry(const char* methodName, TR::AOTMethodHeader* header);
 
    /**
     * @brief Should return a pointer to the memory allocated for persisting data
@@ -73,7 +69,7 @@ public:
     * @param size: number of bytes requested
     * @return uintptr_t*  pointer to memory region
     */
-   uint8_t * allocateEntry(uintptr_t size);
+   virtual uint8_t * allocateEntry(uintptr_t size);
 
 protected:
    /**
