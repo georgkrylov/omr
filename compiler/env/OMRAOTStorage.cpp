@@ -21,7 +21,6 @@
 #include "env/AOTStorage.hpp"
 #include "infra/Assert.hpp"
 
-
 TR::AOTMethodHeader*
 OMR::AOTStorage::loadEntry(const char* key )
    {

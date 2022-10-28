@@ -71,7 +71,7 @@ namespace ELF{
 
 class ELFGenerator;
 
-class OMR_EXTENSIBLE ELFSharedObjectGenerator : public OMR::ELFSharedObjectGeneratorConnector, public OMR::AOTStorageConnector
+class OMR_EXTENSIBLE ELFSharedObjectGenerator : public OMR::ELFSharedObjectGeneratorConnector, public OMR::AOTStorage
 {
 
 public:
