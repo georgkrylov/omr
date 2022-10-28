@@ -40,7 +40,7 @@
 
  ELF::ELFSharedObjectGenerator::ELFSharedObjectGenerator(TR::RawAllocator rawAllocator):
                             OMR::ELFSharedObjectGeneratorConnector(rawAllocator, 0, 0),
-                            OMR::AOTStorageConnector(),
+                            OMR::AOTStorage(),
                             ELFDataMap(str_comparator)
                             {}
 
