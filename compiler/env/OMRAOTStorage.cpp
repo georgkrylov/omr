@@ -21,12 +21,6 @@
 #include "env/AOTStorage.hpp"
 #include "infra/Assert.hpp"
 
-TR::AOTStorage*
-OMR::AOTStorage::self()
-   {
-   return static_cast<TR::AOTStorage*>(this);
-   }
-
 TR::AOTMethodHeader*
 OMR::AOTStorage::loadEntry(const char* key )
    {
@@ -37,7 +31,7 @@ OMR::AOTStorage::loadEntry(const char* key )
 void
 OMR::AOTStorage::storeEntry(const char* key, TR::AOTMethodHeader* hdr)
    {
-   uint8_t* buffer = self()->allocateEntry(hdr->sizeOfSerializedVersion());
+   uint8_t* buffer = this->allocateEntry(hdr->sizeOfSerializedVersion());
    hdr->serializeMethod(buffer,hdr->sizeOfSerializedVersion());
    }
 

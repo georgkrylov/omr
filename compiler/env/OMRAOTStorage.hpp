@@ -71,14 +71,6 @@ public:
     */
    virtual uint8_t * allocateEntry(uintptr_t size);
 
-protected:
-   /**
-    * @brief required by the extensible class
-    *
-    * @return TR::AOTStorage*
-    */
-   TR::AOTStorage* self();
-
    };
 
 } // namespace OMR
