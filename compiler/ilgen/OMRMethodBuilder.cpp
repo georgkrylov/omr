@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2021 IBM Corp. and others
+ * Copyright (c) 2016, 2023 IBM Corp. and others
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -264,8 +264,8 @@ OMR::MethodBuilder::countBlocks()
 
       ListIterator<TR::BytecodeBuilder> iter(_allBytecodeBuilders);
       for (TR::BytecodeBuilder *builder=iter.getFirst();
-           !iter.atEnd();
-           builder = iter.getNext())
+         !iter.atEnd();
+         builder = iter.getNext())
          {
          // any BytecodeBuilders that have not yet been connected are actually unreachable
          // but unreachable code analysis will assert if their trees aren't in the method
@@ -279,7 +279,6 @@ OMR::MethodBuilder::countBlocks()
             }
          }
       }
-
    _count = numBlocks;
    return numBlocks;
    }

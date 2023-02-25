@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017, 2022 IBM Corp. and others
+# Copyright (c) 2017, 2023 IBM Corp. and others
 #
 # This program and the accompanying materials are made available under
 # the terms of the Eclipse Public License 2.0 which accompanies this
@@ -52,6 +52,7 @@ if(OMR_JITBUILDER_TEST_EXTENDED)
 	create_jitbuilder_test(conststring       cpp/samples/ConstString.cpp)
 	create_jitbuilder_test(dotproduct        cpp/samples/DotProduct.cpp)
 	create_jitbuilder_test(inliningrecfib    cpp/samples/InliningRecFib.cpp)
+	create_jitbuilder_test(bytecodeBuilderInlining   cpp/samples/BytecodeBuilderInlining.cpp)
 	create_jitbuilder_test(fieldaddress      cpp/samples/FieldAddress.cpp)
 	create_jitbuilder_test(linkedlist        cpp/samples/LinkedList.cpp)
 	create_jitbuilder_test(localarray        cpp/samples/LocalArray.cpp)
