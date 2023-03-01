@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2022 IBM Corp. and others
+ * Copyright (c) 2000, 2023 IBM Corp. and others
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -2085,8 +2085,16 @@ OMR::IlBuilder::Call(TR::MethodBuilder *calleeMB, int32_t numArgs, TR::IlValue *
    // set up callee's inline site index
    calleeMB->setInlineSiteIndex(_methodBuilder->getNextInlineSiteIndex());
 
-   // set up callee's return builder for return control flows
-   TR::IlBuilder *returnBuilder = OrphanBuilder();
+   TR::IlBuilder *returnBuilder;
+   if (!_methodBuilder->usesBytecodeBuilders())
+      {
+      // set up callee's return builder for return control flows
+      returnBuilder = OrphanBuilder();
+      }
+   else
+      {
+      returnBuilder = OrphanBytecodeBuilder(_bcIndex,"smth");
+      }
    calleeMB->setReturnBuilder(returnBuilder);
 
    // get calleeMB ready to be part of this compilation
@@ -2113,9 +2121,15 @@ OMR::IlBuilder::Call(TR::MethodBuilder *calleeMB, int32_t numArgs, TR::IlValue *
    if (!rc)
       return NULL;
 
-   // there shouldn't be any fall-through, but if there is it should go to the return block and we need to put it somewhere anyway
-   AppendBuilder(returnBuilder);
-
+   if (!_methodBuilder->usesBytecodeBuilders())
+      {
+      // there shouldn't be any fall-through, but if there is it should go to the return block and we need to put it somewhere anyway
+      AppendBuilder(returnBuilder);
+      }
+   else
+      {
+      _methodBuilder->AppendBytecodeBuilder(reinterpret_cast<TR::BytecodeBuilder*>(returnBuilder));
+      }
    setVMState(returnBuilder->vmState());
 
    // if no return value, then we're done
